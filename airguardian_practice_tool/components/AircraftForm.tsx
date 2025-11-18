@@ -5,11 +5,13 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { PlaneTakeoff, Pin } from "lucide-react";
+import { PlaneTakeoff, Pin, Pi } from "lucide-react";
 import { Waypoint } from "@/app/page";
 import { atom, useAtom } from "jotai";
 
 export const settingwpAtom = atom(false)
+export const waypointAtom = atom<Waypoint[]>([])
+
 
 interface AircraftFormProps {
   onSubmit: (aircraft: Aircraft) => void;
@@ -27,12 +29,12 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
     waypoints: []
   });
 
-  const [waypoints, setWaypoints] = useState<Waypoint[]>([])
+  const [waypoints, setWaypoints] = useAtom<Waypoint[]>(waypointAtom)
   const [settingwp, setSettingwp] = useAtom(settingwpAtom)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
+    setSettingwp(false)
     const newAircraft: Aircraft = {
       id: formData.id,
       speed: Number(formData.speed),
@@ -57,6 +59,8 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       additionalInfo: "",
       waypoints: []
     });
+
+    setWaypoints([])
   };
 
   const handleChange = (
@@ -179,7 +183,25 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="Waypoints">Add Waypoints</Label>
+        <Label className="mb-5" htmlFor="Waypoints">Add Waypoints</Label>
+          {waypoints.map((point, i) => {
+            return (
+                <div
+                  key={i}
+                  className="flex-1 border rounded-lg p-3 space-y-2 text-slate-700 mb-5"
+                >
+                  <div className="flex justify-between">
+                    <span className="font-medium">Latitude</span>
+                    <span>{point.latitude.toFixed(5)}</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span className="font-medium">Longitude</span>
+                    <span>{point.longitude.toFixed(5)}</span>
+                  </div>
+                </div>
+            )
+          })}
           <Button onClick={startaddWaypoint} className="w-50%">
         <Pin className="mr-2 h-4 w-4" />
         Add Waypoint

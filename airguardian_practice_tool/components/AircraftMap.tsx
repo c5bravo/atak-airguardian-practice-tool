@@ -9,7 +9,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { Icon, LatLng, LatLngExpression } from "leaflet";
 import { Popup, useMapEvents } from "react-leaflet";
 import { useAtom } from "jotai";
-import { settingwpAtom } from "./AircraftForm";
+import { settingwpAtom, waypointAtom } from "./AircraftForm";
 
 interface AircraftMapProps {
   aircraft: Aircraft[];
@@ -21,12 +21,9 @@ interface AircraftMapProps {
 
 export default function AircraftMap({
   aircraft,
-  selectedAircraft,
   onSelectAircraft,
 }: AircraftMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-
-  const [drawnWaypoints, setDrawnWaypoints] = useState<Waypoint[]>([])
 
   const planeIcon = new Icon({
     iconUrl: "../plane.svg",
@@ -72,28 +69,52 @@ export default function AircraftMap({
         }
       }
     }
-  }, [selectedAircraft]);
+  }, []);
+
+  const [drawnwaypoints, setDrawnWaypoints] = useState<Waypoint[]>()
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>()
 
   function WaypointMarkers() {
-      const initialMarkers: LatLng[] = [];
-      const [markers, setMarkers] = useState(initialMarkers);
 
-  const [settingwp, setSettingwp] = useAtom(settingwpAtom)
-      const map = useMapEvents({
+    const [settingwp, setSettingwp] = useAtom(settingwpAtom)
+    const [waypoints, setWaypoints] = useAtom<Waypoint[]>(waypointAtom)
+    const map = useMapEvents({
 
-        click(e) {
-          if(!settingwp) return;
-          markers.push(e.latlng);
-          setMarkers((prevValue) => [...prevValue, e.latlng]);
-          setSettingwp(false)
-        }
-      });
+      click(e) {
+        if(!settingwp) return;
+        const np: Waypoint = {latitude: e.latlng.lat, longitude: e.latlng.lng}
+        setWaypoints((x) => [...x, np])
+      }
+    });
 
+    if(settingwp){
       return (
         <Fragment>
-          {markers.map((marker, i) => <Marker key={i} position={marker} ></Marker>)}
+          {waypoints.map((marker, i) => <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} ></Marker>)}
         </Fragment>
       );
+    }
+    if(selectedAircraft){
+      return(
+        <Fragment>
+          {drawnwaypoints?.map((marker, i) => <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} ></Marker>)}
+        </Fragment>
+      )
+    }
+
+  }
+
+  function selectAircraft(id: string){
+    if(selectedAircraft == id) return
+    setSelectedAircraft(id)
+    const craft = aircraft.find((a) => a.id === id)
+    setDrawnWaypoints( craft?.waypoints )
+
+  }
+
+  function closePopup(){
+    setSelectedAircraft(null)
+    setDrawnWaypoints([])
   }
 
   return (
@@ -115,8 +136,14 @@ export default function AircraftMap({
           const position = new LatLng(craft.latitude, craft.longitude);
 
           return (
-            <Marker key={craft.id} position={position} icon={planeIcon}>
-              <Popup>
+            <Marker key={craft.id} position={position} icon={planeIcon} eventHandlers={{
+                click: (e) => {
+                  selectAircraft(craft.id)
+                },
+              }}>
+              <Popup eventHandlers={{remove: (e) =>{
+                closePopup()
+              }}}>
                 <div>
                   <div className="mb-1">
                     <strong className="text-slate-900">{craft.id}</strong>

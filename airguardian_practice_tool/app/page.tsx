@@ -31,7 +31,7 @@ const initialAircraft: Aircraft[] = [
     longitude: 24.9384, // Helsinki
     additionalInfo: "Commercial flight to Stockholm",
     heading: 270,
-    waypoints: [],
+    waypoints: [{latitude: 63, longitude: 25}],
   },
   {
     id: "FIN002",

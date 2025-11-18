@@ -1,11 +1,15 @@
-'use client'
-import { useState } from 'react';
-import { Aircraft } from '@/app/page';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { PlaneTakeoff } from 'lucide-react';
+"use client";
+import { use, useState } from "react";
+import { Aircraft } from "@/app/page";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
+import { PlaneTakeoff, Pin } from "lucide-react";
+import { Waypoint } from "@/app/page";
+import { atom, useAtom } from "jotai";
+
+export const settingwpAtom = atom(false)
 
 interface AircraftFormProps {
   onSubmit: (aircraft: Aircraft) => void;
@@ -13,14 +17,18 @@ interface AircraftFormProps {
 
 export function AircraftForm({ onSubmit }: AircraftFormProps) {
   const [formData, setFormData] = useState({
-    id: '',
-    speed: '',
-    altitude: '',
-    latitude: '',
-    longitude: '',
-    heading: '',
-    additionalInfo: '',
+    id: "",
+    speed: "",
+    altitude: "",
+    latitude: "",
+    longitude: "",
+    heading: "",
+    additionalInfo: "",
+    waypoints: []
   });
+
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([])
+  const [settingwp, setSettingwp] = useAtom(settingwpAtom)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,30 +41,37 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       longitude: Number(formData.longitude),
       heading: Number(formData.heading),
       additionalInfo: formData.additionalInfo,
+      waypoints: waypoints,
     };
 
     onSubmit(newAircraft);
 
     // Reset form
     setFormData({
-      id: '',
-      speed: '',
-      altitude: '',
-      latitude: '',
-      longitude: '',
-      heading: '',
-      additionalInfo: '',
+      id: "",
+      speed: "",
+      altitude: "",
+      latitude: "",
+      longitude: "",
+      heading: "",
+      additionalInfo: "",
+      waypoints: []
     });
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+
+  const startaddWaypoint = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSettingwp(true)
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -163,10 +178,19 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         />
       </div>
 
+      <div>
+        <Label htmlFor="Waypoints">Add Waypoints</Label>
+          <Button onClick={startaddWaypoint} className="w-50%">
+        <Pin className="mr-2 h-4 w-4" />
+        Add Waypoint
+      </Button>
+      </div>
+
       <Button type="submit" className="w-full">
         <PlaneTakeoff className="mr-2 h-4 w-4" />
         Add Aircraft
       </Button>
     </form>
   );
+
 }

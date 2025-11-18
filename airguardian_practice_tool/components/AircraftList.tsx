@@ -1,8 +1,8 @@
-'use client'
-import { Aircraft } from '@/app/page';
-import { Button } from './ui/button';
-import { Trash2, Plane } from 'lucide-react';
-import { ScrollArea } from './ui/scroll-area';
+"use client";
+import { Aircraft } from "@/app/page";
+import { Button } from "./ui/button";
+import { Trash2, Plane } from "lucide-react";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface AircraftListProps {
   aircraft: Aircraft[];
@@ -34,8 +34,8 @@ export function AircraftList({
             key={craft.id}
             className={`p-3 rounded-lg border cursor-pointer transition-colors ${
               selectedAircraft === craft.id
-                ? 'bg-blue-50 border-blue-300'
-                : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                ? "bg-blue-50 border-blue-300"
+                : "bg-slate-50 border-slate-200 hover:bg-slate-100"
             }`}
             onClick={() => onSelectAircraft(craft.id)}
           >
@@ -46,7 +46,9 @@ export function AircraftList({
                   <span className="text-slate-900">{craft.id}</span>
                 </div>
                 <div className="text-sm text-slate-600 space-y-0.5">
-                  <div>{craft.speed} km/h • {craft.altitude.toLocaleString()} ft</div>
+                  <div>
+                    {craft.speed} km/h • {craft.altitude.toLocaleString()} ft
+                  </div>
                   <div className="text-xs">
                     {craft.latitude.toFixed(4)}°, {craft.longitude.toFixed(4)}°
                   </div>

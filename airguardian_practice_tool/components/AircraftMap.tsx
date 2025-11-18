@@ -1,13 +1,15 @@
-'use client'
-import { Aircraft } from '@/app/page';
-import { Plane } from 'lucide-react';
-import { useEffect, useRef } from 'react';
-import { MapContainer, Marker, TileLayer, Tooltip } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
-import "leaflet-defaulticon-compatibility"
-import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
-import { Icon, LatLng, LatLngExpression } from 'leaflet';
-import { Popup } from 'react-leaflet';
+"use client";
+import { Aircraft, Waypoint } from "@/app/page";
+import { Plane } from "lucide-react";
+import { useEffect, useRef, useState, Fragment} from "react";
+import { MapContainer, Marker, TileLayer, Tooltip } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet-defaulticon-compatibility";
+import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
+import { Icon, LatLng, LatLngExpression } from "leaflet";
+import { Popup, useMapEvents } from "react-leaflet";
+import { useAtom } from "jotai";
+import { settingwpAtom } from "./AircraftForm";
 
 interface AircraftMapProps {
   aircraft: Aircraft[];
@@ -17,19 +19,25 @@ interface AircraftMapProps {
   zoom: number*/
 }
 
-export default function AircraftMap({ aircraft, selectedAircraft, onSelectAircraft}: AircraftMapProps) {
+export default function AircraftMap({
+  aircraft,
+  selectedAircraft,
+  onSelectAircraft,
+}: AircraftMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const planeIcon = new Icon({
-    iconUrl: '../plane.svg',
-    iconRetinaUrl: '../plane.svg',
+  const [drawnWaypoints, setDrawnWaypoints] = useState<Waypoint[]>([])
 
-    iconSize:     [38, 95], // size of the icon
-    shadowSize:   [50, 64], // size of the shadow
+  const planeIcon = new Icon({
+    iconUrl: "../plane.svg",
+    iconRetinaUrl: "../plane.svg",
+
+    iconSize: [38, 95], // size of the icon
+    shadowSize: [50, 64], // size of the shadow
     //iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
     //shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
-});
+    popupAnchor: [-3, -20], // point from which the popup should open relative to the iconAnchor
+  });
 
   // Finland bounds
   const bounds = {
@@ -38,7 +46,6 @@ export default function AircraftMap({ aircraft, selectedAircraft, onSelectAircra
     minLon: 19.5,
     maxLon: 31.5,
   };
-
 
   // Convert lat/lon to SVG coordinates
   const latLonToXY = (lat: number, lon: number) => {
@@ -51,60 +58,90 @@ export default function AircraftMap({ aircraft, selectedAircraft, onSelectAircra
     if (selectedAircraft && mapRef.current) {
       const selectedCraft = aircraft.find((a) => a.id === selectedAircraft);
       if (selectedCraft) {
-        const { x, y } = latLonToXY(selectedCraft.latitude, selectedCraft.longitude);
+        const { x, y } = latLonToXY(
+          selectedCraft.latitude,
+          selectedCraft.longitude,
+        );
         const element = document.getElementById(`aircraft-${selectedAircraft}`);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "center",
+          });
         }
       }
     }
   }, [selectedAircraft]);
 
-  return (
-    <div ref={mapRef} className="relative h-[700px] w-full bg-gradient-to-br from-blue-100 via-blue-50 to-green-50 overflow-hidden">
-      {/* Grid lines for reference */}
-      {/*
-      <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.2 }}>
-        <defs>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#94a3b8" strokeWidth="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-      </svg>
-*/}
-    <MapContainer center={new LatLng(62, 24)} zoom={6} scrollWheelZoom={true} style={{height: "700px", width: "full", zIndex: 5}}>
-    <TileLayer
-      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-    />
-    {aircraft.map((craft) => {
-      const position = new LatLng(craft.latitude, craft.longitude)
+  function WaypointMarkers() {
+      const initialMarkers: LatLng[] = [];
+      const [markers, setMarkers] = useState(initialMarkers);
+
+  const [settingwp, setSettingwp] = useAtom(settingwpAtom)
+      const map = useMapEvents({
+
+        click(e) {
+          if(!settingwp) return;
+          markers.push(e.latlng);
+          setMarkers((prevValue) => [...prevValue, e.latlng]);
+          setSettingwp(false)
+        }
+      });
 
       return (
-      <Marker key={craft.id} position={position} icon={planeIcon}>
-      <Popup>
-       <div>
-                <div className="mb-1">
-                  <strong className="text-slate-900">{craft.id}</strong>
-                </div>
-                <div className="text-sm space-y-1 text-slate-600">
-                  <div>Speed: {craft.speed} km/h</div>
-                  <div>Altitude: {craft.altitude.toLocaleString()} ft</div>
-                  <div>Heading: {craft.heading}°</div>
-                  <div>Position: {craft.latitude.toFixed(4)}°, {craft.longitude.toFixed(4)}°</div>
-                  {craft.additionalInfo && (
-                    <div className="mt-2 pt-2 border-t border-slate-200 text-xs">
-                      {craft.additionalInfo}
-                    </div>
-                  )}
-                </div>
-              </div>
-      </Popup>
-    </Marker>
-    )})}
+        <Fragment>
+          {markers.map((marker, i) => <Marker key={i} position={marker} ></Marker>)}
+        </Fragment>
+      );
+  }
 
-    </MapContainer>
+  return (
+    <div
+      ref={mapRef}
+      className="relative h-[700px] w-full bg-gradient-to-br from-blue-100 via-blue-50 to-green-50 overflow-hidden"
+    >
+      <MapContainer
+        center={new LatLng(62, 24)}
+        zoom={6}
+        scrollWheelZoom={true}
+        style={{ height: "700px", width: "full", zIndex: 5 }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {aircraft.map((craft) => {
+          const position = new LatLng(craft.latitude, craft.longitude);
+
+          return (
+            <Marker key={craft.id} position={position} icon={planeIcon}>
+              <Popup>
+                <div>
+                  <div className="mb-1">
+                    <strong className="text-slate-900">{craft.id}</strong>
+                  </div>
+                  <div className="text-sm space-y-1 text-slate-600">
+                    <div>Speed: {craft.speed} km/h</div>
+                    <div>Altitude: {craft.altitude.toLocaleString()} ft</div>
+                    <div>Heading: {craft.heading}°</div>
+                    <div>
+                      Position: {craft.latitude.toFixed(4)}°,{" "}
+                      {craft.longitude.toFixed(4)}°
+                    </div>
+                    {craft.additionalInfo && (
+                      <div className="mt-2 pt-2 border-t border-slate-200 text-xs">
+                        {craft.additionalInfo}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+        <WaypointMarkers/>
+      </MapContainer>
 
       {/* Aircraft markers 
       {aircraft.map((craft) => {

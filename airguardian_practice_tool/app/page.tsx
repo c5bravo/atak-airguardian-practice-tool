@@ -1,9 +1,9 @@
-'use client'
-import { useState } from 'react';
-import { AircraftForm } from '@/components/AircraftForm';
-import { AircraftList } from '@/components/AircraftList';
-import dynamic from 'next/dynamic';
-import { useMemo } from 'react';
+"use client";
+import { useState } from "react";
+import { AircraftForm } from "@/components/AircraftForm";
+import { AircraftList } from "@/components/AircraftList";
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
 
 export interface Aircraft {
   id: string;
@@ -13,36 +13,45 @@ export interface Aircraft {
   longitude: number;
   additionalInfo: string;
   heading: number;
+  waypoints: Waypoint[];
+}
+
+export interface Waypoint {
+  latitude: number;
+  longitude: number;
 }
 
 // Mock initial aircraft data over Finland
 const initialAircraft: Aircraft[] = [
   {
-    id: 'FIN001',
+    id: "FIN001",
     speed: 450,
     altitude: 35000,
     latitude: 60.1699,
     longitude: 24.9384, // Helsinki
-    additionalInfo: 'Commercial flight to Stockholm',
+    additionalInfo: "Commercial flight to Stockholm",
     heading: 270,
+    waypoints: [],
   },
   {
-    id: 'FIN002',
+    id: "FIN002",
     speed: 380,
     altitude: 28000,
     latitude: 61.4978,
-    longitude: 23.7610, // Tampere
-    additionalInfo: 'Cargo transport',
+    longitude: 23.761, // Tampere
+    additionalInfo: "Cargo transport",
     heading: 180,
+    waypoints: [],
   },
   {
-    id: 'FIN003',
+    id: "FIN003",
     speed: 520,
     altitude: 42000,
     latitude: 65.0121,
     longitude: 25.4651, // Oulu
-    additionalInfo: 'International flight',
+    additionalInfo: "International flight",
     heading: 90,
+    waypoints: [],
   },
 ];
 
@@ -61,14 +70,14 @@ export default function App() {
     }
   };
 
-  const Map = useMemo(() => dynamic(
-    () => import('@/components/AircraftMap'),
-    { 
-      loading: () => <p>A map is loading</p>,
-      ssr: false
-    }
-  ), [])
-
+  const Map = useMemo(
+    () =>
+      dynamic(() => import("@/components/AircraftMap"), {
+        loading: () => <p>A map is loading</p>,
+        ssr: false,
+      }),
+    [],
+  );
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -101,7 +110,9 @@ export default function App() {
 
             {/* Aircraft List */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-slate-900 mb-4">Aircraft List ({aircraft.length})</h2>
+              <h2 className="text-slate-900 mb-4">
+                Aircraft List ({aircraft.length})
+              </h2>
               <AircraftList
                 aircraft={aircraft}
                 selectedAircraft={selectedAircraft}

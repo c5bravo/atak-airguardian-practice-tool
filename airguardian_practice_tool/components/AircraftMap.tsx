@@ -2,7 +2,7 @@
 import { Aircraft, Waypoint } from "@/app/page";
 import { Plane } from "lucide-react";
 import { useEffect, useRef, useState, Fragment} from "react";
-import { MapContainer, Marker, TileLayer, Tooltip } from "react-leaflet";
+import { MapContainer, Marker, Polyline, TileLayer, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -104,12 +104,27 @@ export default function AircraftMap({
 
   }
 
+  function WaypointLines() {
+    let positionsarr: LatLng[] = []
+    const craft = aircraft.find((a) => a.id === selectedAircraft)
+    if(!craft) return
+    positionsarr.push(new LatLng(craft!.latitude, craft!.longitude))
+
+    drawnwaypoints?.forEach(point => {
+      positionsarr.push(new LatLng(point.latitude, point.longitude))
+    });
+      return(
+        <Fragment>
+          {positionsarr?.map((marker, i) => <Polyline key={i} pathOptions={{color: "red"}} positions={positionsarr} ></Polyline>)}
+        </Fragment>
+      )
+  }
+
   function selectAircraft(id: string){
     if(selectedAircraft == id) return
     setSelectedAircraft(id)
     const craft = aircraft.find((a) => a.id === id)
     setDrawnWaypoints( craft?.waypoints )
-
   }
 
   function closePopup(){
@@ -136,6 +151,7 @@ export default function AircraftMap({
           const position = new LatLng(craft.latitude, craft.longitude);
 
           return (
+            
             <Marker key={craft.id} position={position} icon={planeIcon} eventHandlers={{
                 click: (e) => {
                   selectAircraft(craft.id)
@@ -168,6 +184,8 @@ export default function AircraftMap({
           );
         })}
         <WaypointMarkers/>
+        <WaypointLines/>
+
       </MapContainer>
 
       {/* Aircraft markers 

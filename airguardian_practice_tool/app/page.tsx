@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AircraftForm } from "@/components/AircraftForm";
 import { AircraftList } from "@/components/AircraftList";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
+//import { LatLng} from "leaflet";
 
 export interface Aircraft {
   id: string;
@@ -30,29 +31,9 @@ const initialAircraft: Aircraft[] = [
     latitude: 60.1699,
     longitude: 24.9384, // Helsinki
     additionalInfo: "Commercial flight to Stockholm",
-    heading: 270,
+    heading: 0,
     waypoints: [{latitude: 63, longitude: 25}],
-  },
-  {
-    id: "FIN002",
-    speed: 380,
-    altitude: 28000,
-    latitude: 61.4978,
-    longitude: 23.761, // Tampere
-    additionalInfo: "Cargo transport",
-    heading: 180,
-    waypoints: [],
-  },
-  {
-    id: "FIN003",
-    speed: 520,
-    altitude: 42000,
-    latitude: 65.0121,
-    longitude: 25.4651, // Oulu
-    additionalInfo: "International flight",
-    heading: 90,
-    waypoints: [],
-  },
+  }
 ];
 
 export default function App() {
@@ -78,6 +59,42 @@ export default function App() {
       }),
     [],
   );
+
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // dynamically import the plugin after window exists
+    import("leaflet").then(() => {
+      import("leaflet-geometryutil").then(() => {
+        setReady(true);
+    });
+    });
+
+  }, []);
+
+
+  useEffect(() =>{
+    //if(!ready) return
+    setInterval(() =>{
+      setAircraft(aircraft.map(craft => {
+        const pos = calculateposition(new L.LatLng(craft.latitude, craft.longitude), craft.speed, craft.heading)
+        craft.latitude = pos.lat
+        craft.longitude = pos.lng
+        return craft
+      }));
+    }, 1000)
+  }, []) 
+/*
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+*/
+  const calculateposition = (pos: L.LatLng, speed: number, heading: number) =>{
+      const dstchange = speed *  0.00027777777777777778 //one second interval
+      const result = L.GeometryUtil.destination(pos, heading, dstchange*1000);
+      return result
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

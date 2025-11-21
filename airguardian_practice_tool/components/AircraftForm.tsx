@@ -44,6 +44,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       heading: Number(formData.heading),
       additionalInfo: formData.additionalInfo,
       waypoints: waypoints,
+      waypointindex: 0
     };
 
     onSubmit(newAircraft);
@@ -156,21 +157,6 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="heading">Heading (0-360°)</Label>
-        <Input
-          id="heading"
-          name="heading"
-          type="number"
-          value={formData.heading}
-          onChange={handleChange}
-          placeholder="270"
-          required
-          min="0"
-          max="360"
-        />
-      </div>
-
-      <div>
         <Label htmlFor="additionalInfo">Additional Information</Label>
         <Textarea
           id="additionalInfo"
@@ -204,7 +190,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           })}
           <Button onClick={startaddWaypoint} className="w-50%">
         <Pin className="mr-2 h-4 w-4" />
-        Add Waypoint
+        Add Waypoints
       </Button>
       </div>
 

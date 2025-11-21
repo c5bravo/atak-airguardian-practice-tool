@@ -6,7 +6,7 @@ import { MapContainer, Marker, Polyline, TileLayer, Tooltip } from "react-leafle
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import { Icon, LatLng, LatLngExpression } from "leaflet";
+import { Icon, LatLng, LatLngExpression, Map, map } from "leaflet";
 import { Popup, useMapEvents } from "react-leaflet";
 import { useAtom } from "jotai";
 import { settingwpAtom, waypointAtom } from "./AircraftForm";
@@ -15,13 +15,13 @@ interface AircraftMapProps {
   aircraft: Aircraft[];
   selectedAircraft: string | null;
   onSelectAircraft: (id: string | null) => void;
-  /*position: LatLngExpression;
-  zoom: number*/
+  setM: (m: Map|null) => void
 }
 
 export default function AircraftMap({
   aircraft,
   onSelectAircraft,
+  setM
 }: AircraftMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +44,6 @@ export default function AircraftMap({
     maxLon: 31.5,
   };
 
-  // Convert lat/lon to SVG coordinates
   const latLonToXY = (lat: number, lon: number) => {
     const x = ((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon)) * 100;
     const y = ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * 100;
@@ -71,8 +70,10 @@ export default function AircraftMap({
     }
   }, []);
 
+
   const [drawnwaypoints, setDrawnWaypoints] = useState<Waypoint[]>()
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>()
+  const [map, setMap] = useState<Map|null>(null);
 
   function WaypointMarkers() {
 
@@ -85,6 +86,7 @@ export default function AircraftMap({
         const np: Waypoint = {latitude: e.latlng.lat, longitude: e.latlng.lng}
         setWaypoints((x) => [...x, np])
       }
+  
     });
 
     if(settingwp){
@@ -132,6 +134,10 @@ export default function AircraftMap({
     setDrawnWaypoints([])
   }
 
+  useEffect(() => {
+    setM(map)
+  },[map])
+
   return (
     <div
       ref={mapRef}
@@ -142,6 +148,7 @@ export default function AircraftMap({
         zoom={6}
         scrollWheelZoom={true}
         style={{ height: "700px", width: "full", zIndex: 5 }}
+        ref={setMap}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

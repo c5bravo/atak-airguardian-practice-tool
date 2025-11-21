@@ -110,7 +110,7 @@ export default function AircraftMap({
     let positionsarr: LatLng[] = []
     const craft = aircraft.find((a) => a.id === selectedAircraft)
     if(!craft) return
-    positionsarr.push(new LatLng(craft!.latitude, craft!.longitude))
+    positionsarr.push(new LatLng(craft!.sposLat, craft!.sposLng))
 
     drawnwaypoints?.forEach(point => {
       positionsarr.push(new LatLng(point.latitude, point.longitude))
@@ -174,7 +174,7 @@ export default function AircraftMap({
                   <div className="text-sm space-y-1 text-slate-600">
                     <div>Speed: {craft.speed} km/h</div>
                     <div>Altitude: {craft.altitude.toLocaleString()} ft</div>
-                    <div>Heading: {craft.heading}°</div>
+                    <div>Heading: {craft.heading.toFixed(3)}°</div>
                     <div>
                       Position: {craft.latitude.toFixed(4)}°,{" "}
                       {craft.longitude.toFixed(4)}°

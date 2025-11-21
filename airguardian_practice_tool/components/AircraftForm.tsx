@@ -44,7 +44,9 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       heading: Number(formData.heading),
       additionalInfo: formData.additionalInfo,
       waypoints: waypoints,
-      waypointindex: 0
+      waypointindex: 0,
+      sposLat: formData.latitude as unknown as number,
+      sposLng: formData.longitude as unknown as number
     };
 
     onSubmit(newAircraft);

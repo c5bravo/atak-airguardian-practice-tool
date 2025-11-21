@@ -17,6 +17,8 @@ export interface Aircraft {
   heading: number;
   waypoints: Waypoint[];
   waypointindex: number
+  sposLat: number
+  sposLng: number
 }
 
 export interface Waypoint {
@@ -34,7 +36,9 @@ const initialAircraft: Aircraft[] = [
     additionalInfo: "Commercial flight to Stockholm",
     heading: 0,
     waypoints: [{latitude: 63, longitude: 25}],
-    waypointindex: 0
+    waypointindex: 0,
+    sposLat:60.1699,
+    sposLng:24.9384
   }
 ];
 
@@ -85,16 +89,30 @@ export default function App() {
     setInterval(() =>{
       setAircraft(prev => prev.map(craft => {
         const latlong = new L.LatLng(craft.latitude, craft.longitude)
-        const h = (360 + calculateheading(latlong, new L.LatLng(craft.waypoints[craft.waypointindex].latitude, craft.waypoints[craft.waypointindex].longitude))) % 360
+        let waypointi = craft.waypointindex
+        let nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
+        const checkwaypoint = checkfornewwaypoint(latlong, nexpos)
+        if(checkwaypoint && checkwaypoint != -1){
+          if(waypointi == craft.waypoints.length-1)
+            {
+              //TODO: stop positions from resetting
+              handleDeleteAircraft(craft.id)
+              return {...craft}
+            }
+          waypointi += 1
+          nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
+        }
+        const h = (360 + calculateheading(latlong, nexpos)) % 360
         const pos = calculateposition(latlong, craft.speed, h)
         craft.latitude = pos.lat
         craft.longitude = pos.lng
-        craft.heading = h.toPrecision(3) as unknown as number
+        craft.heading = h
           return {
             ...craft,         
             latitude: pos.lat,
             longitude: pos.lng,
-            heading: Number(h.toPrecision(3)),
+            heading: h,
+            waypointindex: waypointi
     };
       }));
     }, 1000)
@@ -111,6 +129,13 @@ export default function App() {
     return result
   }
 
+  const checkfornewwaypoint = (pos: L.LatLng, wpos: L.LatLng) =>{
+    if(map == null) return -1
+    if(L.GeometryUtil.length([pos, wpos]) <= 300){
+        return true
+    }
+    return false
+  }
 
   const calculateheading = (curpos: L.LatLng, nextpos: L.LatLng) => {
     if(map == null) return 0
@@ -118,6 +143,7 @@ export default function App() {
     const p1 = map?.latLngToContainerPoint(curpos)
     const p2 = map?.latLngToContainerPoint(nextpos)
     */
+   //TODO: why does the plane fly off the track?????
     const p1 = new L.Point(curpos.lat, curpos.lng)
     const p2 = new L.Point(nextpos.lat, nextpos.lng)
     return L.GeometryUtil.computeAngle(p1!, p2!)

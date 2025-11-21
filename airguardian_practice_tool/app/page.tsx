@@ -1,63 +1,197 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+import { AircraftForm } from "@/components/AircraftForm";
+import { AircraftList } from "@/components/AircraftList";
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
+import { Map } from "leaflet";
+//import { LatLng} from "leaflet";
 
-export default function Home() {
+export interface Aircraft {
+  id: string;
+  speed: number;
+  altitude: number;
+  latitude: number;
+  longitude: number;
+  additionalInfo: string;
+  heading: number;
+  waypoints: Waypoint[];
+  waypointindex: number
+  sposLat: number
+  sposLng: number
+}
+
+export interface Waypoint {
+  latitude: number;
+  longitude: number;
+}
+
+const initialAircraft: Aircraft[] = [
+  {
+    id: "FIN001",
+    speed: 450,
+    altitude: 35000,
+    latitude: 60.1699,
+    longitude: 24.9384,
+    additionalInfo: "Commercial flight to Stockholm",
+    heading: 0,
+    waypoints: [{latitude: 63, longitude: 25}],
+    waypointindex: 0,
+    sposLat:60.1699,
+    sposLng:24.9384
+  }
+];
+
+export default function App() {
+  const [aircraft, setAircraft] = useState<Aircraft[]>(initialAircraft);
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
+  const [map, Setmap] = useState<Map|null>(null)
+
+  const setMap = (m: Map|null) => {
+    Setmap(m)
+  }
+
+  const handleAddAircraft = (newAircraft: Aircraft) => {
+    setAircraft([...aircraft, newAircraft]);
+  };
+  
+  const handleDeleteAircraft = (id: string) => {
+    setAircraft(aircraft.filter((a) => a.id !== id));
+    if (selectedAircraft === id) {
+      setSelectedAircraft(null);
+    }
+  };
+
+  const Map = useMemo(
+    () =>
+      dynamic(() => import("@/components/AircraftMap"), {
+        loading: () => <p>A map is loading</p>,
+        ssr: false,
+      }),
+    [],
+  );
+
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // dynamically import the plugin after window exists
+    import("leaflet").then(() => {
+      import("leaflet-geometryutil").then(() => {
+        setReady(true);
+    });
+    });
+
+  }, []);
+
+
+  useEffect(() =>{
+    //if(!ready) return
+    setInterval(() =>{
+      setAircraft(prev => prev.map(craft => {
+        const latlong = new L.LatLng(craft.latitude, craft.longitude)
+        let waypointi = craft.waypointindex
+        let nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
+        const checkwaypoint = checkfornewwaypoint(latlong, nexpos)
+        if(checkwaypoint && checkwaypoint != -1){
+          if(waypointi == craft.waypoints.length-1)
+            {
+              //TODO: stop positions from resetting
+              handleDeleteAircraft(craft.id)
+              return {...craft}
+            }
+          waypointi += 1
+          nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
+        }
+        const h = (360 + calculateheading(latlong, nexpos)) % 360
+        const pos = calculateposition(latlong, craft.speed, h)
+        craft.latitude = pos.lat
+        craft.longitude = pos.lng
+        craft.heading = h
+          return {
+            ...craft,         
+            latitude: pos.lat,
+            longitude: pos.lng,
+            heading: h,
+            waypointindex: waypointi
+    };
+      }));
+    }, 1000)
+  }, [map]) 
+/*
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+*/
+  const calculateposition = (pos: L.LatLng, speed: number, heading: number) =>{
+    const dstchange = speed *  0.00027777777777777778 //one second interval
+    const result = L.GeometryUtil.destination(pos, heading, dstchange*1000);
+    return result
+  }
+
+  const checkfornewwaypoint = (pos: L.LatLng, wpos: L.LatLng) =>{
+    if(map == null) return -1
+    if(L.GeometryUtil.length([pos, wpos]) <= 300){
+        return true
+    }
+    return false
+  }
+
+  const calculateheading = (curpos: L.LatLng, nextpos: L.LatLng) => {
+    if(map == null) return 0
+    /*
+    const p1 = map?.latLngToContainerPoint(curpos)
+    const p2 = map?.latLngToContainerPoint(nextpos)
+    */
+   //TODO: why does the plane fly off the track?????
+    const p1 = new L.Point(curpos.lat, curpos.lng)
+    const p2 = new L.Point(nextpos.lat, nextpos.lng)
+    return L.GeometryUtil.computeAngle(p1!, p2!)
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="text-slate-900">TAK ilmavalvonta harjoitustyökalu</h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Map Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <Map
+                aircraft={aircraft}
+                selectedAircraft={selectedAircraft}
+                onSelectAircraft={setSelectedAircraft}
+                setM={setMap}
+              />
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Add Aircraft Form */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-slate-900 mb-4">Add Aircraft</h2>
+              <AircraftForm onSubmit={handleAddAircraft} />
+            </div>
+
+            {/* Aircraft List */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-slate-900 mb-4">
+                Aircraft List ({aircraft.length})
+              </h2>
+              <AircraftList
+                aircraft={aircraft}
+                selectedAircraft={selectedAircraft}
+                onSelectAircraft={setSelectedAircraft}
+                onDeleteAircraft={handleDeleteAircraft}
+              />
+            </div>
+          </div>
         </div>
       </main>
     </div>

@@ -31,8 +31,6 @@ export default function AircraftMap({
 
     iconSize: [38, 95], // size of the icon
     shadowSize: [50, 64], // size of the shadow
-    //iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-    //shadowAnchor: [4, 62],  // the same for the shadow
     popupAnchor: [-3, -20], // point from which the popup should open relative to the iconAnchor
   });
 
@@ -194,84 +192,6 @@ export default function AircraftMap({
         <WaypointLines/>
 
       </MapContainer>
-
-      {/* Aircraft markers 
-      {aircraft.map((craft) => {
-        const { x, y } = latLonToXY(craft.latitude, craft.longitude);
-        const isSelected = selectedAircraft === craft.id;
-
-        return (
-          <div
-            key={craft.id}
-            id={`aircraft-${craft.id}`}
-            className="absolute cursor-pointer transition-all duration-300 group"
-            style={{
-              left: `${x}%`,
-              top: `${y}%`,
-              transform: 'translate(-50%, -50%)',
-              zIndex: isSelected ? 50 : 10,
-            }}
-            onClick={() => onSelectAircraft(craft.id)}
-          >
-            {/* Aircraft icon }
-            <div
-              className={`relative transition-all ${
-                isSelected ? 'scale-125' : 'scale-100 group-hover:scale-110'
-              }`}
-            >
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${
-                  isSelected
-                    ? 'bg-blue-500 ring-4 ring-blue-300'
-                    : 'bg-sky-500 ring-2 ring-white'
-                }`}
-                style={{
-                  transform: `rotate(${craft.heading}deg)`,
-                }}
-              >
-                <Plane className="h-5 w-5 text-white" style={{ transform: `rotate(-${craft.heading}deg)` }} />
-              </div>
-
-              {/* Aircraft ID label }
-              <div
-                className={`absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded shadow-md text-xs transition-opacity ${
-                  isSelected
-                    ? 'bg-blue-500 text-white opacity-100'
-                    : 'bg-white text-slate-900 opacity-0 group-hover:opacity-100'
-                }`}
-              >
-                {craft.id}
-              </div>
-
-              {/* Info popup on hover }
-              <div className="absolute left-full ml-3 top-0 bg-white rounded-lg shadow-xl p-3 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 min-w-[200px]">
-                <div className="mb-1">
-                  <strong className="text-slate-900">{craft.id}</strong>
-                </div>
-                <div className="text-sm space-y-1 text-slate-600">
-                  <div>Speed: {craft.speed} km/h</div>
-                  <div>Altitude: {craft.altitude.toLocaleString()} ft</div>
-                  <div>Heading: {craft.heading}°</div>
-                  <div>Position: {craft.latitude.toFixed(4)}°, {craft.longitude.toFixed(4)}°</div>
-                  {craft.additionalInfo && (
-                    <div className="mt-2 pt-2 border-t border-slate-200 text-xs">
-                      {craft.additionalInfo}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Movement trail effect }
-            {isSelected && (
-              <div className="absolute inset-0 -z-10">
-                <div className="w-10 h-10 rounded-full bg-blue-400 animate-ping opacity-20"></div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-*/}
       {/* Legend */}
       <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4">
         <div className="text-sm">
@@ -298,3 +218,5 @@ export default function AircraftMap({
     </div>
   );
 }
+
+

@@ -5,7 +5,7 @@ import { AircraftList } from "@/components/AircraftList";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { Map } from "leaflet";
-//import { LatLng} from "leaflet";
+import L from "leaflet";
 
 export interface Aircraft {
   id: string;
@@ -74,19 +74,15 @@ export default function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // dynamically import the plugin after window exists
     import("leaflet").then(() => {
       import("leaflet-geometryutil").then(() => {
         setReady(true);
+      });
     });
-    });
-
   }, []);
 
-
   useEffect(() =>{
-    //if(!ready) return
-    setInterval(() =>{
+    const interval = setInterval(() =>{
       setAircraft(prev => prev.map(craft => {
         const latlong = new L.LatLng(craft.latitude, craft.longitude)
         let waypointi = craft.waypointindex
@@ -95,14 +91,13 @@ export default function App() {
         if(checkwaypoint && checkwaypoint != -1){
           if(waypointi == craft.waypoints.length-1)
             {
-              //TODO: stop positions from resetting
               handleDeleteAircraft(craft.id)
               return {...craft}
             }
           waypointi += 1
           nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
         }
-        const h = (360 + calculateheading(latlong, nexpos)) % 360
+        const h = (360 + calculateHeading(latlong, nexpos)) % 360
         const pos = calculateposition(latlong, craft.speed, h)
         craft.latitude = pos.lat
         craft.longitude = pos.lng
@@ -113,16 +108,12 @@ export default function App() {
             longitude: pos.lng,
             heading: h,
             waypointindex: waypointi
-    };
+        };
       }));
-    }, 1000)
+    }, 200) // faster interval for smoother movement
+    return () => clearInterval(interval)
   }, [map]) 
-/*
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-*/
+
   const calculateposition = (pos: L.LatLng, speed: number, heading: number) =>{
     const dstchange = speed *  0.00027777777777777778 //one second interval
     const result = L.GeometryUtil.destination(pos, heading, dstchange*1000);
@@ -137,16 +128,19 @@ export default function App() {
     return false
   }
 
-  const calculateheading = (curpos: L.LatLng, nextpos: L.LatLng) => {
-    if(map == null) return 0
-    /*
-    const p1 = map?.latLngToContainerPoint(curpos)
-    const p2 = map?.latLngToContainerPoint(nextpos)
-    */
-   //TODO: why does the plane fly off the track?????
-    const p1 = new L.Point(curpos.lat, curpos.lng)
-    const p2 = new L.Point(nextpos.lat, nextpos.lng)
-    return L.GeometryUtil.computeAngle(p1!, p2!)
+  // REPLACED calculateheading with geodesic bearing
+  const calculateHeading = (curpos: L.LatLng, nextpos: L.LatLng) => {
+    const φ1 = curpos.lat * Math.PI/180;
+    const φ2 = nextpos.lat * Math.PI/180;
+    const Δλ = (nextpos.lng - curpos.lng) * Math.PI/180;
+
+    const y = Math.sin(Δλ) * Math.cos(φ2);
+    const x = Math.cos(φ1) * Math.sin(φ2) -
+              Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+
+    let θ = Math.atan2(y, x);
+    θ = θ * 180 / Math.PI;
+    return (θ + 360) % 360; // normalize 0-360°
   }
 
   return (

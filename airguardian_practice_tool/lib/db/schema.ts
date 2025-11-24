@@ -1,11 +1,20 @@
-import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { int, sqliteTable, text, real, blob } from "drizzle-orm/sqlite-core";
+import { Waypoint } from "@/app/page";
 
-export const Aircrafttable = sqliteTable("users_table", {
-  id: int().primaryKey({ autoIncrement: true }),
-  aircraftId: text().notNull(),
-  position: text().notNull(),
-  speed: text().notNull(),
-  direction: int().notNull(),
-  altitude: text().notNull(),
-  details: text().notNull()
+
+export const Aircrafttable = sqliteTable("aircrafttable", {
+  id: text().primaryKey(),
+  speed: int().notNull(),
+  altitude: int().notNull(),
+  latitude: real().notNull(),
+  longitude: real().notNull(),
+  additionalinfo: text().notNull(),
+  heading: int().notNull(),
+  waypoints: text().notNull(),
+  waypointindex: int().notNull(),
+  sposLat: int().notNull(),
+  sposLng: int().notNull(),
 });
+
+export type SelectAircraft= typeof Aircrafttable.$inferSelect
+export type InsertAircraft= typeof Aircrafttable.$inferInsert

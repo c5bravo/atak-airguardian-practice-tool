@@ -43,7 +43,7 @@ const initialAircraft: Aircraft[] = [
 ];
 
 
-  const postdata = async (a: Aircraft[]) =>{
+  const postdata = async (a: Aircraft) =>{
     const res = await fetch('http://localhost:3000/pages/api',{
         method: 'POST',
         headers: {
@@ -51,6 +51,13 @@ const initialAircraft: Aircraft[] = [
         },
         body: JSON.stringify(a),
     })
+  }
+
+  const getdata = async () =>{
+    const res = await fetch('http://localhost:3000/pages/api',{
+        method: 'GET'
+    })
+    return await res.json()
   }
 
 export default function App() {
@@ -63,7 +70,8 @@ export default function App() {
   }
 
   const handleAddAircraft = (newAircraft: Aircraft) => {
-    setAircraft([...aircraft, newAircraft]);
+    setAircraft([...aircraft, newAircraft])
+    postdata(newAircraft);
   };
   
   const handleDeleteAircraft = (id: string) => {
@@ -93,57 +101,18 @@ export default function App() {
   }, []);
 
 
-useEffect(() => {
-  const i= setInterval(() => {
-    postdata(aircraft)
-  }, 10000)
-return ()=>{
-  clearInterval(i)
-}
-}, [aircraft])
+  useEffect(() =>{
+    //if(!ready) return
+    const i = setInterval(() =>{
+      async function fetching() {
+        const craft = await getdata()
+        setAircraft(craft)
+      }
+      fetching()
+}, 5000)
+  return () => {clearInterval(i)}
+  }) 
 
-  const calculateposition = (pos: L.LatLng, speed: number, heading: number) =>{
-    const dstchange = speed *  0.00027777777777777778 //one second interval
-    const result = L.GeometryUtil.destination(pos, heading, dstchange*1000);
-    return result
-  }
-
-  const checkfornewwaypoint = (pos: L.LatLng, wpos: L.LatLng) =>{
-    if(map == null) return -1
-    if(L.GeometryUtil.length([pos, wpos]) <= 300){
-        return true
-    }
-    return false
-  }
-// this is the math fucntion that is used: 
-// Haversine
-// formula:	a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
-// c = 2 ⋅ atan2( √a, √(1−a) )
-// d = R ⋅ c
-// Uses a geodesic bearing calculation for smoother heading transitions between waypoints.
-// This replaces the previous calculateHeading method, which produced inaccurate turn behavior.
-const calculateHeading = (currentPos: L.LatLng, nextPos: L.LatLng) => {
-  // Convert latitude values from degrees to radians
-  const lat1 = currentPos.lat * Math.PI / 180;
-  const lat2 = nextPos.lat * Math.PI / 180;
-
-  // Difference in longitude (in radians)
-  const deltaLon = (nextPos.lng - currentPos.lng) * Math.PI / 180;
-
-  // Compute components of the bearing formula
-  const y = Math.sin(deltaLon) * Math.cos(lat2);
-  const x = Math.cos(lat1) * Math.sin(lat2) -
-            Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
-
-  // Calculate initial bearing in radians
-  let bearing = Math.atan2(y, x);
-
-  // Convert bearing to degrees
-  bearing = bearing * 180 / Math.PI;
-
-  // Normalize to 0–360°
-  return (bearing + 360) % 360;
-};
 
 
   return (

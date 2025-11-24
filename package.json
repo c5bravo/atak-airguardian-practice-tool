@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "jotai": "^2.15.1"
+    "jotai": "^2.15.1",
+    "mgrs": "^2.1.0"
   }
 }

@@ -81,38 +81,50 @@ export default function App() {
     });
   }, []);
 
-  useEffect(() =>{
+useEffect(() =>{
     const interval = setInterval(() =>{
-      setAircraft(prev => prev.map(craft => {
-        const latlong = new L.LatLng(craft.latitude, craft.longitude)
-        let waypointi = craft.waypointindex
-        let nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
-        const checkwaypoint = checkfornewwaypoint(latlong, nexpos)
-        if(checkwaypoint && checkwaypoint != -1){
-          if(waypointi == craft.waypoints.length-1)
-            {
-              handleDeleteAircraft(craft.id)
-              return {...craft}
+      setAircraft(prev => {
+        const toDelete: string[] = [];
+
+        const updated = prev.map(craft => {
+          const latlong = new L.LatLng(craft.latitude, craft.longitude)
+          let waypointi = craft.waypointindex
+          let nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
+          const checkwaypoint = checkfornewwaypoint(latlong, nexpos)
+
+          if (checkwaypoint && checkwaypoint !== -1) {
+            if (waypointi === craft.waypoints.length - 1) {
+              toDelete.push(craft.id);        // delete once reach the destination
+              return craft;                  // return unchanged (the rest of aircrafts continue until destination)
             }
-          waypointi += 1
-          nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
-        }
-        const h = (360 + calculateHeading(latlong, nexpos)) % 360
-        const pos = calculateposition(latlong, craft.speed, h)
-        craft.latitude = pos.lat
-        craft.longitude = pos.lng
-        craft.heading = h
+            waypointi += 1
+            nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
+          }
+
+          const h = (360 + calculateHeading(latlong, nexpos)) % 360
+          const pos = calculateposition(latlong, craft.speed, h)
+
           return {
-            ...craft,         
+            ...craft,
             latitude: pos.lat,
             longitude: pos.lng,
             heading: h,
             waypointindex: waypointi
-        };
-      }));
-    }, 200) // faster interval for smoother movement
+          };
+        });
+
+        // Perform deletions AFTER update (safe)
+        if (toDelete.length > 0) {
+          return updated.filter(a => !toDelete.includes(a.id))
+        }
+
+        return updated;
+      });
+    }, 200)
+
     return () => clearInterval(interval)
-  }, [map]) 
+}, [map])
+ 
 
   const calculateposition = (pos: L.LatLng, speed: number, heading: number) =>{
     const dstchange = speed *  0.00027777777777777778 //one second interval
@@ -128,7 +140,7 @@ export default function App() {
     return false
   }
 
-  // REPLACED calculateheading with geodesic bearing
+  // REPLACED calculateheading with geodesic bearing for better turns via waypoints, the prior approach did not work properly
   const calculateHeading = (curpos: L.LatLng, nextpos: L.LatLng) => {
     const φ1 = curpos.lat * Math.PI/180;
     const φ2 = nextpos.lat * Math.PI/180;
@@ -147,7 +159,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-slate-900">TAK ilmavalvonta harjoitustyökalu</h1>
+          <h1 className="text-slate-900">TAK ilmavalvonta simulaatio</h1>
         </div>
       </header>
 

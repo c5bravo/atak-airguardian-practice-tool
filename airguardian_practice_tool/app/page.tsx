@@ -42,6 +42,17 @@ const initialAircraft: Aircraft[] = [
   }
 ];
 
+
+  const postdata = async (a: Aircraft[]) =>{
+    const res = await fetch('http://localhost:3000/pages/api',{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(a),
+    })
+  }
+
 export default function App() {
   const [aircraft, setAircraft] = useState<Aircraft[]>(initialAircraft);
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
@@ -115,14 +126,20 @@ export default function App() {
             waypointindex: waypointi
     };
       }));
-    }, 1000)
+}, 1000)
+
+
   }, [map]) 
-/*
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-*/
+
+useEffect(() => {
+  const i= setInterval(() => {
+    postdata(aircraft)
+  }, 10000)
+return ()=>{
+  clearInterval(i)
+}
+}, [aircraft])
+
   const calculateposition = (pos: L.LatLng, speed: number, heading: number) =>{
     const dstchange = speed *  0.00027777777777777778 //one second interval
     const result = L.GeometryUtil.destination(pos, heading, dstchange*1000);

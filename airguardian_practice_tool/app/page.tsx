@@ -42,6 +42,17 @@ const initialAircraft: Aircraft[] = [
   }
 ];
 
+
+  const postdata = async (a: Aircraft[]) =>{
+    const res = await fetch('http://localhost:3000/pages/api',{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(a),
+    })
+  }
+
 export default function App() {
   const [aircraft, setAircraft] = useState<Aircraft[]>(initialAircraft);
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
@@ -81,50 +92,15 @@ export default function App() {
     });
   }, []);
 
-useEffect(() =>{
-    const interval = setInterval(() =>{
-      setAircraft(prev => {
-        const toDelete: string[] = [];
 
-        const updated = prev.map(craft => {
-          const latlong = new L.LatLng(craft.latitude, craft.longitude)
-          let waypointi = craft.waypointindex
-          let nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
-          const checkwaypoint = checkfornewwaypoint(latlong, nexpos)
-
-          if (checkwaypoint && checkwaypoint !== -1) {
-            if (waypointi === craft.waypoints.length - 1) {
-              toDelete.push(craft.id);        // delete once reach the destination
-              return craft;                  // return unchanged (the rest of aircrafts continue until destination)
-            }
-            waypointi += 1
-            nexpos = new L.LatLng(craft.waypoints[waypointi].latitude, craft.waypoints[waypointi].longitude)
-          }
-
-          const h = (360 + calculateHeading(latlong, nexpos)) % 360
-          const pos = calculateposition(latlong, craft.speed, h)
-
-          return {
-            ...craft,
-            latitude: pos.lat,
-            longitude: pos.lng,
-            heading: h,
-            waypointindex: waypointi
-          };
-        });
-
-        // Perform deletions AFTER update (safe)
-        if (toDelete.length > 0) {
-          return updated.filter(a => !toDelete.includes(a.id))
-        }
-
-        return updated;
-      });
-    }, 200)
-
-    return () => clearInterval(interval)
-}, [map])
- 
+useEffect(() => {
+  const i= setInterval(() => {
+    postdata(aircraft)
+  }, 10000)
+return ()=>{
+  clearInterval(i)
+}
+}, [aircraft])
 
   const calculateposition = (pos: L.LatLng, speed: number, heading: number) =>{
     const dstchange = speed *  0.00027777777777777778 //one second interval

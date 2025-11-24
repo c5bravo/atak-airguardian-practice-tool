@@ -140,26 +140,41 @@ useEffect(() =>{
     return false
   }
 
-  // REPLACED calculateheading with geodesic bearing for better turns via waypoints, the prior approach did not work properly
-  const calculateHeading = (curpos: L.LatLng, nextpos: L.LatLng) => {
-    const φ1 = curpos.lat * Math.PI/180;
-    const φ2 = nextpos.lat * Math.PI/180;
-    const Δλ = (nextpos.lng - curpos.lng) * Math.PI/180;
+// Uses a geodesic bearing calculation for smoother heading transitions between waypoints.
+// This replaces the previous calculateHeading method, which produced inaccurate turn behavior.
+const calculateHeading = (currentPos: L.LatLng, nextPos: L.LatLng) => {
+  // Convert latitude values from degrees to radians
+  const lat1 = currentPos.lat * Math.PI / 180;
+  const lat2 = nextPos.lat * Math.PI / 180;
 
-    const y = Math.sin(Δλ) * Math.cos(φ2);
-    const x = Math.cos(φ1) * Math.sin(φ2) -
-              Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  // Difference in longitude (in radians)
+  const deltaLon = (nextPos.lng - currentPos.lng) * Math.PI / 180;
 
-    let θ = Math.atan2(y, x);
-    θ = θ * 180 / Math.PI;
-    return (θ + 360) % 360; // normalize 0-360°
-  }
+  // Compute components of the bearing formula
+  const y = Math.sin(deltaLon) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) -
+            Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
+
+  // Calculate initial bearing in radians
+  let bearing = Math.atan2(y, x);
+
+  // Convert bearing to degrees
+  bearing = bearing * 180 / Math.PI;
+
+  // Normalize to 0–360°
+  return (bearing + 360) % 360;
+};
+
 
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-slate-900">TAK ilmavalvonta simulaatio</h1>
+          <img 
+            src="ilmavahti.svg"
+            className="h-10 w-auto"
+          />
+          <h1 className="text-slate-1000, bold">TAK ilmavalvonta simulaatio</h1>
         </div>
       </header>
 

@@ -1,15 +1,23 @@
 "use client";
 import { Aircraft, Waypoint } from "@/app/page";
 import { Plane } from "lucide-react";
-import { useEffect, useRef, useState, Fragment} from "react";
-import { MapContainer, Marker, Polyline, TileLayer, Tooltip, Popup, useMapEvents } from "react-leaflet";
+import { useEffect, useRef, useState, Fragment } from "react";
+import {
+  MapContainer,
+  Marker,
+  Polyline,
+  TileLayer,
+  Tooltip,
+  Popup,
+  useMapEvents
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { Icon, LatLng, Map } from "leaflet";
 import { useAtom } from "jotai";
 
-import { settingwpAtom, waypointAtom, aircraftStartAtom } from "./AircraftForm"; 
+import { settingwpAtom, waypointAtom, aircraftStartAtom, settingStartAtom } from "./AircraftForm"; 
 
 interface AircraftMapProps {
   aircraft: Aircraft[];
@@ -18,12 +26,7 @@ interface AircraftMapProps {
   setM: (m: Map|null) => void
 }
 
-export default function AircraftMap({
-  aircraft,
-  onSelectAircraft,
-  setM
-}: AircraftMapProps) {
-
+export default function AircraftMap({ aircraft, onSelectAircraft, setM }: AircraftMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   const planeIcon = new Icon({
@@ -36,12 +39,13 @@ export default function AircraftMap({
 
   const [drawnwaypoints, setDrawnWaypoints] = useState<Waypoint[]>();
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>();
-  const [map, setMap] = useState<Map|null>(null);
+  const [map, setMap] = useState<Map | null>(null);
 
   // atoms
   const [settingwp] = useAtom(settingwpAtom);
   const [, setWaypoints] = useAtom<Waypoint[]>(waypointAtom);
   const [startPos, setStartPos] = useAtom(aircraftStartAtom);  
+  const [settingStart] = useAtom(settingStartAtom);
 
   // handle clicking map
   function ClickHandler() {
@@ -52,12 +56,11 @@ export default function AircraftMap({
 
         if (settingwp) {
           setWaypoints((prev) => [...prev, { latitude: lat, longitude: lng }]);
-        } else {
-          setStartPos({ lat, lng }); //choose aircraft start
+        } else if (settingStart) {
+          setStartPos({ lat, lng }); // only set start when settingStart mode is active
         }
       }
     });
-
     return null;
   }
 
@@ -99,11 +102,7 @@ export default function AircraftMap({
       positionsarr.push(new LatLng(point.latitude, point.longitude));
     });
 
-    return (
-      <>
-        <Polyline pathOptions={{color: "red"}} positions={positionsarr} />
-      </>
-    );
+    return <Polyline pathOptions={{color: "red"}} positions={positionsarr} />;
   }
 
   function selectAircraft(id: string) {
@@ -159,17 +158,11 @@ export default function AircraftMap({
               position={position}
               icon={planeIcon}
               eventHandlers={{
-                click: () => {
-                  selectAircraft(craft.id);
-                },
+                click: () => selectAircraft(craft.id),
               }}
             >
               <Popup
-                eventHandlers={{
-                  remove: () => {
-                    closePopup();
-                  },
-                }}
+                eventHandlers={{ remove: () => closePopup() }}
               >
                 <div>
                   <div className="mb-1">
@@ -222,7 +215,6 @@ export default function AircraftMap({
       <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs text-slate-600">
         Finland • {aircraft.length} aircraft tracked
       </div>
-
     </div>
   );
 }

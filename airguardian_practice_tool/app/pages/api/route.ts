@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     const checkwaypoint = checkfornewwaypoint(latlong, nexpos)
     
     if(checkwaypoint){
-        if(waypointi == craft.waypoints.length-1)
+        if(waypointi == waypoints.length-1)
         {
             //TODO: stop positions from resetting
             handleDeleteAircraft(craft.id)
@@ -96,8 +96,9 @@ export async function DELETE(request: Request){
     return NextResponse.json(reqdata)
 }
 
-function handleDeleteAircraft(name: string){
-
+async function handleDeleteAircraft(name: string){
+    const database = db 
+    await database.delete(Aircrafttable).where(eq(Aircrafttable.id, name))
 }
 
   const checkfornewwaypoint = (pos: latlong, wpos: latlong) =>{

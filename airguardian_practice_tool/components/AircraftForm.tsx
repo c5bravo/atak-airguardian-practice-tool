@@ -51,7 +51,6 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
 
     onSubmit(newAircraft);
 
-    // Reset form
     setFormData({
       id: "",
       speed: "",
@@ -77,7 +76,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
 
   const startaddWaypoint = (e: React.FormEvent) => {
     e.preventDefault();
-    setSettingwp(true);
+    setSettingwp(prev => !prev);   // <-- ONLY REQUIRED CHANGE
   };
 
   return (
@@ -203,9 +202,18 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           );
         })}
 
-        <Button onClick={startaddWaypoint} className="w-50%">
+        {/* waypoints button active/inactive */}
+        <Button
+          onClick={startaddWaypoint}
+          className={
+            `w-50% ` +
+            (settingwp
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-slate-200 text-slate-900 hover:bg-slate-300")
+          }
+        >
           <Pin className="mr-2 h-4 w-4" />
-          Add Waypoints
+          {settingwp ? "Adding Waypoints..." : "Add Waypoints"}
         </Button>
       </div>
 

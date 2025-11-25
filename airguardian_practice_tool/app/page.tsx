@@ -60,6 +60,14 @@ const initialAircraft: Aircraft[] = [
     return await res.json()
   }
 
+  const deletedata = async (id: string) =>{
+    const res = await fetch('http://localhost:3000/pages/api',{
+        method: 'DELETE',
+        body: JSON.stringify(id),
+    })
+    return await res.json()
+  }
+
 export default function App() {
   const [aircraft, setAircraft] = useState<Aircraft[]>(initialAircraft);
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
@@ -76,6 +84,7 @@ export default function App() {
   
   const handleDeleteAircraft = (id: string) => {
     setAircraft(aircraft.filter((a) => a.id !== id));
+    deletedata(id)
     if (selectedAircraft === id) {
       setSelectedAircraft(null);
     }
@@ -107,11 +116,11 @@ export default function App() {
     //if(!ready) return
     const i = setInterval(() =>{
       async function fetching() {
-        const craft = await getdata()
+        const craft = (await getdata())
         setAircraft(craft)
       }
       fetching()
-}, 5000)
+}, 1000)
   return () => {clearInterval(i)}
   }) 
 

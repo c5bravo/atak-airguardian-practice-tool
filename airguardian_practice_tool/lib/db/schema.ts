@@ -9,7 +9,7 @@ export const Aircrafttable = sqliteTable("aircrafttable", {
   latitude: real().notNull(),
   longitude: real().notNull(),
   additionalinfo: text().notNull(),
-  heading: int().notNull(),
+  heading: real().notNull(),
   waypoints: text().notNull(),
   waypointindex: int().notNull(),
   sposLat: int().notNull(),

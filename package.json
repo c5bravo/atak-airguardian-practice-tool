@@ -1,5 +1,9 @@
 {
   "dependencies": {
+    "@libsql/client": "^0.15.15",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.7",
+    "drizzle-orm": "^0.44.7",
     "jotai": "^2.15.1",
     "mgrs": "^2.1.0"
   }

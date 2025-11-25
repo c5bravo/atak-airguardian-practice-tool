@@ -7,10 +7,12 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { PlaneTakeoff, Pin } from "lucide-react";
 import { atom, useAtom } from "jotai";
+import { MapPin } from "lucide-react";
 
 export const settingwpAtom = atom(false);
 export const waypointAtom = atom<Waypoint[]>([]);
 export const aircraftStartAtom = atom<{ lat: number; lng: number } | null>(null);
+export const settingStartAtom = atom(false);
 
 interface AircraftFormProps {
   onSubmit: (aircraft: Aircraft) => void;
@@ -29,6 +31,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
   const [waypoints, setWaypoints] = useAtom(waypointAtom);
   const [settingwp, setSettingwp] = useAtom(settingwpAtom);
   const [startPos] = useAtom(aircraftStartAtom);
+    const [settingStart, setSettingStart] = useAtom(settingStartAtom);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,6 +139,15 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         ) : (
           <p className="text-red-600">No position selected</p>
         )}
+        <Button
+          onClick={() => setSettingStart(prev => !prev)}
+          className={`mt-2 w-full ${
+            settingStart ? "bg-green-600 text-white hover:bg-green-700" : "bg-slate-200 text-slate-900 hover:bg-slate-300"
+          }`}
+        >
+          <MapPin className="mr-2 h-4 w-4" />
+          {settingStart ? "Selecting Start Position..." : "Set New Start Position"}
+        </Button>
       </div>
 
       <div>

@@ -187,6 +187,15 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
                     <span className="font-medium">Longitude</span>
                     <span>{point.longitude.toFixed(5)}</span>
                   </div>
+
+                  <button
+                    onClick={() =>
+                      setWaypoints((wps) => wps.filter((_, idx) => idx !== i))
+                    }
+                    className=" px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
+                    >
+                    Delete
+                  </button>
                 </div>
             )
           })}

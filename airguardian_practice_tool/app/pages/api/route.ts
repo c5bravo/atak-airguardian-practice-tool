@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
-import { Aircraft } from '@/app/page';
-import { forward } from "mgrs";
 import { db } from '@/lib/db/db';
 import { Aircrafttable } from '@/lib/db/schema';
-import { SelectAircraft, InsertAircraft } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
  
 export interface latlong{

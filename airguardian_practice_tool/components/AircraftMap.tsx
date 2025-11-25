@@ -9,7 +9,8 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { Icon, LatLng, Map } from "leaflet";
 import { Popup, useMapEvents } from "react-leaflet";
 import { useAtom } from "jotai";
-import { settingwpAtom, waypointAtom, aircraftStartAtom } from "./AircraftForm"; 
+import { settingwpAtom, waypointAtom, aircraftStartAtom, settingStartAtom } from "./AircraftForm"; 
+import { Tooltip } from "react-leaflet";
 
 interface AircraftMapProps {
   aircraft: Aircraft[];
@@ -53,6 +54,7 @@ export default function AircraftMap({
   const [settingwp] = useAtom(settingwpAtom);
   const [, setWaypoints] = useAtom<Waypoint[]>(waypointAtom);
   const [startPos, setStartPos] = useAtom(aircraftStartAtom);
+    const [settingStart, setSettingStart] = useAtom(settingStartAtom);
 
   // handle clicking map
   function ClickHandler() {
@@ -63,8 +65,9 @@ export default function AircraftMap({
 
         if (settingwp) {
           setWaypoints((prev) => [...prev, { latitude: lat, longitude: lng }]);
-        } else {
+        } else if(settingStart) {
           setStartPos({ lat, lng }); //choose aircraft start
+          setSettingStart(false)
         }
       }
     });
@@ -150,6 +153,16 @@ export default function AircraftMap({
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        <ClickHandler />
+
+          {startPos && (
+          <Marker position={[startPos.lat, startPos.lng]}>
+            <Tooltip permanent direction="top">
+              Start Position
+            </Tooltip>
+          </Marker>
+        )}
 
         {aircraft.map((craft) => {
           const position = new LatLng(craft.latitude, craft.longitude);

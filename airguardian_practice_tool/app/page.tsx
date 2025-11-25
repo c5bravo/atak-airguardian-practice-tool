@@ -5,7 +5,7 @@ import { AircraftList } from "@/components/AircraftList";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { Map } from "leaflet";
-//import { LatLng} from "leaflet";
+import L from "leaflet";
 
 export interface Aircraft {
   id: string;

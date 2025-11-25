@@ -12,6 +12,9 @@ import { atom, useAtom } from "jotai";
 export const settingwpAtom = atom(false);
 export const waypointAtom = atom<Waypoint[]>([]);
 
+/* new atom for start postion */
+export const aircraftStartAtom = atom<{ lat: number; lng: number } | null>(null);
+
 interface AircraftFormProps {
   onSubmit: (aircraft: Aircraft) => void;
 }
@@ -21,8 +24,6 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
     id: "",
     speed: "",
     altitude: "",
-    latitude: "",
-    longitude: "",
     heading: "",
     additionalInfo: "",
     waypoints: []
@@ -31,22 +32,31 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
   const [waypoints, setWaypoints] = useAtom<Waypoint[]>(waypointAtom);
   const [settingwp, setSettingwp] = useAtom(settingwpAtom);
 
+  /* get start postions on the map */
+  const [startPos] = useAtom(aircraftStartAtom);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!startPos) {
+      alert("Please click on the map to choose the aircraft starting position.");
+      return;
+    }
+
     setSettingwp(false);
 
     const newAircraft: Aircraft = {
       id: formData.id,
       speed: Number(formData.speed),
       altitude: Number(formData.altitude),
-      latitude: Number(formData.latitude),
-      longitude: Number(formData.longitude),
+      latitude: startPos.lat,
+      longitude: startPos.lng,
       heading: Number(formData.heading),
       additionalInfo: formData.additionalInfo,
       waypoints: waypoints,
       waypointindex: 0,
-      sposLat: formData.latitude as unknown as number,
-      sposLng: formData.longitude as unknown as number
+      sposLat: startPos.lat,
+      sposLng: startPos.lng
     };
 
     onSubmit(newAircraft);
@@ -55,8 +65,6 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       id: "",
       speed: "",
       altitude: "",
-      latitude: "",
-      longitude: "",
       heading: "",
       additionalInfo: "",
       waypoints: []
@@ -76,7 +84,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
 
   const startaddWaypoint = (e: React.FormEvent) => {
     e.preventDefault();
-    setSettingwp(prev => !prev);   // <-- ONLY REQUIRED CHANGE
+    setSettingwp(prev => !prev);
   };
 
   return (
@@ -123,38 +131,16 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="latitude">Latitude</Label>
-          <Input
-            id="latitude"
-            name="latitude"
-            type="number"
-            step="0.0001"
-            value={formData.latitude}
-            onChange={handleChange}
-            placeholder="60.1699"
-            required
-            min="59.5"
-            max="70.5"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="longitude">Longitude</Label>
-          <Input
-            id="longitude"
-            name="longitude"
-            type="number"
-            step="0.0001"
-            value={formData.longitude}
-            onChange={handleChange}
-            placeholder="24.9384"
-            required
-            min="19.5"
-            max="31.5"
-          />
-        </div>
+      {/* showing start positin on the map */}
+      <div className="border p-3 rounded bg-slate-100">
+        <Label>Starting Position (click on map)</Label>
+        {startPos ? (
+          <p className="text-green-700 font-semibold">
+            {startPos.lat.toFixed(5)}, {startPos.lng.toFixed(5)}
+          </p>
+        ) : (
+          <p className="text-red-600">No position selected</p>
+        )}
       </div>
 
       <div>

@@ -2,14 +2,14 @@
 import { Aircraft, Waypoint } from "@/app/page";
 import { Plane } from "lucide-react";
 import { useEffect, useRef, useState, Fragment} from "react";
-import { MapContainer, Marker, Polyline, TileLayer, Tooltip } from "react-leaflet";
+import { MapContainer, Marker, Polyline, TileLayer, Tooltip, Popup, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import { Icon, LatLng, LatLngExpression, Map, map } from "leaflet";
-import { Popup, useMapEvents } from "react-leaflet";
+import { Icon, LatLng, Map } from "leaflet";
 import { useAtom } from "jotai";
-import { settingwpAtom, waypointAtom } from "./AircraftForm";
+
+import { settingwpAtom, waypointAtom, aircraftStartAtom } from "./AircraftForm"; 
 
 interface AircraftMapProps {
   aircraft: Aircraft[];
@@ -23,118 +23,104 @@ export default function AircraftMap({
   onSelectAircraft,
   setM
 }: AircraftMapProps) {
+
   const mapRef = useRef<HTMLDivElement>(null);
 
   const planeIcon = new Icon({
     iconUrl: "../plane.svg",
     iconRetinaUrl: "../plane.svg",
-
-    iconSize: [38, 95], // size of the icon
-    shadowSize: [50, 64], // size of the shadow
-    popupAnchor: [-3, -20], // point from which the popup should open relative to the iconAnchor
+    iconSize: [38, 95],
+    shadowSize: [50, 64],
+    popupAnchor: [-3, -20],
   });
 
-  // Finland bounds
-  const bounds = {
-    minLat: 59.5,
-    maxLat: 70.5,
-    minLon: 19.5,
-    maxLon: 31.5,
-  };
-
-  const latLonToXY = (lat: number, lon: number) => {
-    const x = ((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon)) * 100;
-    const y = ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * 100;
-    return { x, y };
-  };
-
-  useEffect(() => {
-    if (selectedAircraft && mapRef.current) {
-      const selectedCraft = aircraft.find((a) => a.id === selectedAircraft);
-      if (selectedCraft) {
-        const { x, y } = latLonToXY(
-          selectedCraft.latitude,
-          selectedCraft.longitude,
-        );
-        const element = document.getElementById(`aircraft-${selectedAircraft}`);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-            inline: "center",
-          });
-        }
-      }
-    }
-  }, []);
-
-
-  const [drawnwaypoints, setDrawnWaypoints] = useState<Waypoint[]>()
-  const [selectedAircraft, setSelectedAircraft] = useState<string | null>()
+  const [drawnwaypoints, setDrawnWaypoints] = useState<Waypoint[]>();
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>();
   const [map, setMap] = useState<Map|null>(null);
 
-  function WaypointMarkers() {
+  // atoms
+  const [settingwp] = useAtom(settingwpAtom);
+  const [, setWaypoints] = useAtom<Waypoint[]>(waypointAtom);
+  const [startPos, setStartPos] = useAtom(aircraftStartAtom);  
 
-    const [settingwp, setSettingwp] = useAtom(settingwpAtom)
-    const [waypoints, setWaypoints] = useAtom<Waypoint[]>(waypointAtom)
-    const map = useMapEvents({
-
+  // handle clicking map
+  function ClickHandler() {
+    useMapEvents({
       click(e) {
-        if(!settingwp) return;
-        const np: Waypoint = {latitude: e.latlng.lat, longitude: e.latlng.lng}
-        setWaypoints((x) => [...x, np])
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        if (settingwp) {
+          setWaypoints((prev) => [...prev, { latitude: lat, longitude: lng }]);
+        } else {
+          setStartPos({ lat, lng }); //choose aircraft start
+        }
       }
-  
     });
 
-    if(settingwp){
+    return null;
+  }
+
+  function WaypointMarkers() {
+    const [settingwp] = useAtom(settingwpAtom);
+    const [waypoints] = useAtom<Waypoint[]>(waypointAtom);
+
+    if (settingwp) {
       return (
-        <Fragment>
-          {waypoints.map((marker, i) => <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} ></Marker>)}
-        </Fragment>
+        <>
+          {waypoints.map((marker, i) => (
+            <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} />
+          ))}
+        </>
       );
     }
-    if(selectedAircraft){
-      return(
-        <Fragment>
-          {drawnwaypoints?.map((marker, i) => <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} ></Marker>)}
-        </Fragment>
-      )
+
+    if (selectedAircraft) {
+      return (
+        <>
+          {drawnwaypoints?.map((marker, i) => (
+            <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} />
+          ))}
+        </>
+      );
     }
 
+    return null;
   }
 
   function WaypointLines() {
-    let positionsarr: LatLng[] = []
-    const craft = aircraft.find((a) => a.id === selectedAircraft)
-    if(!craft) return
-    positionsarr.push(new LatLng(craft!.sposLat, craft!.sposLng))
+    let positionsarr: LatLng[] = [];
+    const craft = aircraft.find((a) => a.id === selectedAircraft);
+    if (!craft) return null;
+
+    positionsarr.push(new LatLng(craft.sposLat, craft.sposLng));
 
     drawnwaypoints?.forEach(point => {
-      positionsarr.push(new LatLng(point.latitude, point.longitude))
+      positionsarr.push(new LatLng(point.latitude, point.longitude));
     });
-      return(
-        <Fragment>
-          {positionsarr?.map((marker, i) => <Polyline key={i} pathOptions={{color: "red"}} positions={positionsarr} ></Polyline>)}
-        </Fragment>
-      )
+
+    return (
+      <>
+        <Polyline pathOptions={{color: "red"}} positions={positionsarr} />
+      </>
+    );
   }
 
-  function selectAircraft(id: string){
-    if(selectedAircraft == id) return
-    setSelectedAircraft(id)
-    const craft = aircraft.find((a) => a.id === id)
-    setDrawnWaypoints( craft?.waypoints )
+  function selectAircraft(id: string) {
+    if (selectedAircraft === id) return;
+    setSelectedAircraft(id);
+    const craft = aircraft.find((a) => a.id === id);
+    setDrawnWaypoints(craft?.waypoints);
   }
 
-  function closePopup(){
-    setSelectedAircraft(null)
-    setDrawnWaypoints([])
+  function closePopup() {
+    setSelectedAircraft(null);
+    setDrawnWaypoints([]);
   }
 
   useEffect(() => {
-    setM(map)
-  },[map])
+    setM(map);
+  }, [map]);
 
   return (
     <div
@@ -152,19 +138,39 @@ export default function AircraftMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        <ClickHandler />
+
+        {/* selected start position */}
+        {startPos && (
+          <Marker position={[startPos.lat, startPos.lng]}>
+            <Tooltip permanent direction="top">
+              Start Position
+            </Tooltip>
+          </Marker>
+        )}
+
         {aircraft.map((craft) => {
           const position = new LatLng(craft.latitude, craft.longitude);
 
           return (
-            
-            <Marker key={craft.id} position={position} icon={planeIcon} eventHandlers={{
-                click: (e) => {
-                  selectAircraft(craft.id)
+            <Marker
+              key={craft.id}
+              position={position}
+              icon={planeIcon}
+              eventHandlers={{
+                click: () => {
+                  selectAircraft(craft.id);
                 },
-              }}>
-              <Popup eventHandlers={{remove: (e) =>{
-                closePopup()
-              }}}>
+              }}
+            >
+              <Popup
+                eventHandlers={{
+                  remove: () => {
+                    closePopup();
+                  },
+                }}
+              >
                 <div>
                   <div className="mb-1">
                     <strong className="text-slate-900">{craft.id}</strong>
@@ -188,10 +194,11 @@ export default function AircraftMap({
             </Marker>
           );
         })}
-        <WaypointMarkers/>
-        <WaypointLines/>
 
+        <WaypointMarkers />
+        <WaypointLines />
       </MapContainer>
+
       {/* Legend */}
       <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4">
         <div className="text-sm">
@@ -215,8 +222,7 @@ export default function AircraftMap({
       <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs text-slate-600">
         Finland • {aircraft.length} aircraft tracked
       </div>
+
     </div>
   );
 }
-
-

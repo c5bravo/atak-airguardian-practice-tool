@@ -139,7 +139,11 @@ useEffect(() =>{
     }
     return false
   }
-
+// this is the math fucntion that is used: 
+// Haversine
+// formula:	a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
+// c = 2 ⋅ atan2( √a, √(1−a) )
+// d = R ⋅ c
 // Uses a geodesic bearing calculation for smoother heading transitions between waypoints.
 // This replaces the previous calculateHeading method, which produced inaccurate turn behavior.
 const calculateHeading = (currentPos: L.LatLng, nextPos: L.LatLng) => {
@@ -169,12 +173,12 @@ const calculateHeading = (currentPos: L.LatLng, nextPos: L.LatLng) => {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-6 flex item-center gap-4">
           <img 
             src="ilmavahti.svg"
             className="h-10 w-auto"
           />
-          <h1 className="text-slate-1000, bold">TAK ilmavalvonta simulaatio</h1>
+          <h1 className="text-slate-1000, font-bold">TAK ilmavalvonta simulaatio</h1>
         </div>
       </header>
 

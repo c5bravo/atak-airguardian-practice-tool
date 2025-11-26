@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/db";
-import { Aircrafttable } from "@/lib/db/schema";
+import { AircraftTable, InsertAircraft } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export interface latlong {
@@ -8,44 +8,35 @@ export interface latlong {
   lng: number;
 }
 
-type ResponseData = {
-  id: number;
-  aircraftId: string;
-  position: string;
-  speed: string;
-  direction: number;
-  altitude: string;
-  details: string;
-};
-
 export async function POST(request: Request) {
-  const database = db;
-  const reqdata = await request.json();
+  const reqData = (await request.json()) as InsertAircraft;
   //const a: InsertAircraft = mapData(reqdata)
-  await database.insert(Aircrafttable).values({
-    id: reqdata.id,
-    speed: reqdata.speed,
-    altitude: reqdata.altitude,
-    latitude: reqdata.latitude,
-    longitude: reqdata.longitude,
-    additionalinfo: reqdata.additionalInfo,
-    heading: reqdata.heading,
-    waypoints: JSON.stringify(reqdata.waypoints),
-    waypointindex: reqdata.waypointindex,
-    sposLat: reqdata.sposLat,
-    sposLng: reqdata.sposLng,
-  });
-  return NextResponse.json(reqdata);
+  const [inserted] = await db
+    .insert(AircraftTable)
+    .values({
+      aircraftId: reqData.aircraftId,
+      speed: reqData.speed,
+      altitude: reqData.altitude,
+      latitude: reqData.latitude,
+      longitude: reqData.longitude,
+      additionalinfo: reqData.additionalinfo,
+      heading: reqData.heading,
+      waypoints: reqData.waypoints,
+      waypointindex: reqData.waypointindex,
+      sposLat: reqData.sposLat,
+      sposLng: reqData.sposLng,
+    })
+    .returning();
+  return NextResponse.json(inserted);
 }
 
-export async function GET(request: Request) {
-  const database = db;
-  const oldcraft = await database.select().from(Aircrafttable);
+export async function GET() {
+  const oldCraft = await db.select().from(AircraftTable);
 
-  const newcraft = oldcraft.map((craft) => {
+  const newCraft = oldCraft.map((craft) => {
     const latlong: latlong = { lat: craft.latitude, lng: craft.longitude };
     let waypointi = craft.waypointindex;
-    let waypoints = JSON.parse(craft.waypoints);
+    let waypoints = craft.waypoints;
     let waypoint = waypoints[waypointi];
     let nexpos: latlong = { lat: waypoint.latitude, lng: waypoint.longitude };
     const checkwaypoint = checkfornewwaypoint(latlong, nexpos);
@@ -57,7 +48,7 @@ export async function GET(request: Request) {
         return { ...craft };
       }
       waypointi += 1;
-      waypoints = JSON.parse(craft.waypoints);
+      waypoints = craft.waypoints;
       waypoint = waypoints[waypointi];
       nexpos = { lat: waypoint.latitude, lng: waypoint.longitude };
     }
@@ -73,35 +64,33 @@ export async function GET(request: Request) {
       longitude: pos.lng,
       heading: h,
       waypointindex: waypointi,
-      waypoints: JSON.parse(craft.waypoints),
+      waypoints: craft.waypoints,
     };
   });
-  newcraft.forEach(async (craft) => {
-    await database
-      .update(Aircrafttable)
+  newCraft.forEach(async (craft) => {
+    await db
+      .update(AircraftTable)
       .set({
         latitude: craft.latitude,
         longitude: craft.longitude,
         heading: craft.heading,
         waypointindex: craft.waypointindex,
-        waypoints: JSON.stringify(craft.waypoints),
+        waypoints: craft.waypoints,
       })
-      .where(eq(Aircrafttable.id, craft.id));
+      .where(eq(AircraftTable.id, craft.id));
   });
 
-  return NextResponse.json(newcraft);
+  return NextResponse.json(newCraft);
 }
 
 export async function DELETE(request: Request) {
-  const database = db;
   const reqdata = await request.json();
-  await database.delete(Aircrafttable).where(eq(Aircrafttable.id, reqdata));
+  await db.delete(AircraftTable).where(eq(AircraftTable.id, reqdata));
   return NextResponse.json(reqdata);
 }
 
-async function handleDeleteAircraft(name: string) {
-  const database = db;
-  await database.delete(Aircrafttable).where(eq(Aircrafttable.id, name));
+async function handleDeleteAircraft(id: number) {
+  await db.delete(AircraftTable).where(eq(AircraftTable.id, id));
 }
 
 const checkfornewwaypoint = (pos: latlong, wpos: latlong) => {
@@ -119,17 +108,17 @@ const calculateposition = (pos: latlong, speed: number, heading: number) => {
 
 function newpos(pos: latlong, heading: number, distance: number) {
   heading = (heading + 360) % 360;
-  let rad = Math.PI / 180;
-  let radInv = 180 / Math.PI;
-  let R = 6378137; // approximation of Earth's radius
-  let lon1 = pos.lng * rad;
-  let lat1 = pos.lat * rad;
-  let rheading = heading * rad;
-  let sinLat1 = Math.sin(lat1);
-  let cosLat1 = Math.cos(lat1);
-  let cosDistR = Math.cos(distance / R);
-  let sinDistR = Math.sin(distance / R);
-  let lat2 = Math.asin(
+  const rad = Math.PI / 180;
+  const radInv = 180 / Math.PI;
+  const R = 6378137; // approximation of Earth's radius
+  const lon1 = pos.lng * rad;
+  const lat1 = pos.lat * rad;
+  const rheading = heading * rad;
+  const sinLat1 = Math.sin(lat1);
+  const cosLat1 = Math.cos(lat1);
+  const cosDistR = Math.cos(distance / R);
+  const sinDistR = Math.sin(distance / R);
+  const lat2 = Math.asin(
     sinLat1 * cosDistR + cosLat1 * sinDistR * Math.cos(rheading),
   );
   let lon2 =
@@ -159,42 +148,20 @@ const calculateheading = (curpos: latlong, nextpos: latlong) => {
 };
 
 function dist(pos: latlong, wpos: latlong) {
-  var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(wpos.lat - pos.lat); // deg2rad below
-  var dLon = deg2rad(wpos.lng - pos.lng);
-  var a =
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(wpos.lat - pos.lat); // deg2rad below
+  const dLon = deg2rad(wpos.lng - pos.lng);
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(pos.lat)) *
       Math.cos(deg2rad(wpos.lat)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  var d = R * c; // Distance in km    return d
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km    return d
   return d * 1000;
 }
 
 function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
-
-/*
-function mapData(oldcraft: Aircraft): InsertAircraft{
-    return {id: oldcraft.id,
-    speed: oldcraft.speed,
-    altitude: oldcraft.altitude,
-    latitude: oldcraft.latitude,
-    longitude: oldcraft.longitude,
-    additionalinfo: oldcraft.additionalInfo,
-    heading: oldcraft.heading,
-    waypoints: oldcraft.waypoints,
-    waypointindex: oldcraft.waypointindex,
-    sposLat: oldcraft.sposLat,
-    sposLng: oldcraft.sposLng}
-}
-/*
-}
-
-    const speed = oldcraft.speed < 140 ? "slow" : oldcraft.speed < 280 ? "fast" : "supersonic";
-    const altitude = oldcraft.altitude < 300 ? "surface" : oldcraft.altitude < 3000 ? "low" : "high";
-    const location = forward([oldcraft.longitude, oldcraft.latitude], 1); 
-*/

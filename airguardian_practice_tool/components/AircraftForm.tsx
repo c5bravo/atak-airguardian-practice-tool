@@ -90,6 +90,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       <div>
         <Label htmlFor="id">Aircraft ID</Label>
         <Input
+        className="mt-2"
           id="id"
           name="id"
           value={formData.id}
@@ -103,12 +104,13 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         <div>
           <Label htmlFor="speed">Speed (km/h)</Label>
           <Input
+            className="mt-2"
             id="speed"
             name="speed"
             type="number"
             value={formData.speed}
             onChange={handleChange}
-            placeholder="450"
+            placeholder="1500"
             required
             min="0"
           />
@@ -117,6 +119,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         <div>
           <Label htmlFor="altitude">Altitude (ft)</Label>
           <Input
+            className="mt-2"
             id="altitude"
             name="altitude"
             type="number"
@@ -130,14 +133,14 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       </div>
 
       {/* showing start positin on the map */}
-      <div className="border p-3 rounded bg-slate-100">
+      <div className="border p-3 rounded bg-white mt-2">
         <Label>Starting Position (click on map)</Label>
         {startPos ? (
           <p className="text-green-700 font-semibold">
             {startPos.lat.toFixed(5)}, {startPos.lng.toFixed(5)}
           </p>
         ) : (
-          <p className="text-red-600">No position selected</p>
+          <p className="text-red-600 text-sm mt-1">No position selected</p>
         )}
         <Button
           onClick={() => setSettingStart(prev => !prev)}
@@ -153,6 +156,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       <div>
         <Label htmlFor="additionalInfo">Additional Information</Label>
         <Textarea
+          className="mt-2"
           id="additionalInfo"
           name="additionalInfo"
           value={formData.additionalInfo}
@@ -163,7 +167,6 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       </div>
 
       <div>
-        <Label className="mb-5" htmlFor="Waypoints">Add Waypoints</Label>
         {waypoints.map((point, i) => {
           return (
 

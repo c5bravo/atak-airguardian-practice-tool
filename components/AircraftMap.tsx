@@ -1,14 +1,13 @@
 "use client";
-import { Aircraft, Waypoint } from "@/app/page";
 import { Plane } from "lucide-react";
-import { useEffect, useRef, useState, Fragment } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { Icon, LatLng, Map } from "leaflet";
 import { Popup, useMapEvents } from "react-leaflet";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   settingwpAtom,
   waypointAtom,
@@ -16,19 +15,14 @@ import {
   settingStartAtom,
 } from "./AircraftForm";
 import { Tooltip } from "react-leaflet";
+import { SelectAircraft, Waypoint } from "@/lib/db/schema";
 
 interface AircraftMapProps {
-  aircraft: Aircraft[];
-  selectedAircraft: string | null;
-  onSelectAircraft: (id: string | null) => void;
+  aircraft: SelectAircraft[];
   setM: (m: Map | null) => void;
 }
 
-export default function AircraftMap({
-  aircraft,
-  onSelectAircraft,
-  setM,
-}: AircraftMapProps) {
+export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   const planeIcon = new Icon({
@@ -52,8 +46,8 @@ export default function AircraftMap({
     return { x, y };
   };
 
-  const [drawnwaypoints, setDrawnWaypoints] = useState<Waypoint[]>();
-  const [selectedAircraft, setSelectedAircraft] = useState<string | null>();
+  const [drawnWaypoints, setDrawnWaypoints] = useState<Waypoint[]>();
+  const [selectedAircraft, setSelectedAircraft] = useState<number | null>();
   const [map, setMap] = useState<Map | null>(null);
 
   const [settingwp] = useAtom(settingwpAtom);
@@ -81,8 +75,8 @@ export default function AircraftMap({
   }
 
   function WaypointMarkers() {
-    const [settingwp] = useAtom(settingwpAtom);
-    const [waypoints] = useAtom<Waypoint[]>(waypointAtom);
+    const settingwp = useAtomValue(settingwpAtom);
+    const waypoints = useAtomValue(waypointAtom);
 
     if (settingwp) {
       return (
@@ -100,7 +94,7 @@ export default function AircraftMap({
     if (selectedAircraft) {
       return (
         <>
-          {drawnwaypoints?.map((marker, i) => (
+          {drawnWaypoints?.map((marker, i) => (
             <Marker
               key={i}
               position={new LatLng(marker.latitude, marker.longitude)}
@@ -114,28 +108,16 @@ export default function AircraftMap({
   }
 
   function WaypointLines() {
-    let positionsarr: LatLng[] = [];
+    const positionsarr: LatLng[] = [];
     const craft = aircraft.find((a) => a.id === selectedAircraft);
     if (!craft) return null;
 
     positionsarr.push(new LatLng(craft!.sposLat, craft!.sposLng));
-    drawnwaypoints?.forEach((p) =>
+    drawnWaypoints?.forEach((p) =>
       positionsarr.push(new LatLng(p.latitude, p.longitude)),
     );
 
     return <Polyline pathOptions={{ color: "red" }} positions={positionsarr} />;
-  }
-
-  function selectAircraft(id: string) {
-    if (selectedAircraft == id) return;
-    setSelectedAircraft(id);
-    const craft = aircraft.find((a) => a.id === id);
-    setDrawnWaypoints(craft?.waypoints);
-  }
-
-  function closePopup() {
-    setSelectedAircraft(null);
-    setDrawnWaypoints([]);
   }
 
   useEffect(() => {
@@ -145,7 +127,7 @@ export default function AircraftMap({
   return (
     <div
       ref={mapRef}
-      className="relative h-[700px] w-full bg-gradient-to-br from-blue-100 via-blue-50 to-green-50 overflow-hidden"
+      className="relative h-[700px] w-full bg-linear-to-br from-blue-100 via-blue-50 to-green-50 overflow-hidden"
     >
       <MapContainer
         center={new LatLng(62, 24)}
@@ -178,29 +160,39 @@ export default function AircraftMap({
               position={position}
               icon={planeIcon}
               eventHandlers={{
-                click: () => selectAircraft(craft.id),
+                click: () => {
+                  if (selectedAircraft == craft.id) return;
+                  setSelectedAircraft(craft.id);
+                  const newCraft = aircraft.find((a) => a.id === craft.id);
+                  setDrawnWaypoints(newCraft?.waypoints);
+                },
               }}
             >
               <Popup
                 eventHandlers={{
-                  remove: () => closePopup(),
+                  remove: () => {
+                    setSelectedAircraft(null);
+                    setDrawnWaypoints([]);
+                  },
                 }}
               >
                 <div>
                   <div className="mb-1">
-                    <strong className="text-slate-900">{craft.id}</strong>
+                    <strong className="text-slate-900">
+                      {craft.aircraftId}
+                    </strong>
                   </div>
                   <div className="text-sm space-y-1 text-slate-600">
                     <div>Speed: {craft.speed} km/h</div>
-                    <div>Altitude: {craft.altitude.toLocaleString()} ft</div>
+                    <div>Altitude: {craft.altitude.toLocaleString()} m</div>
                     <div>Heading: {craft.heading.toFixed(3)}°</div>
                     <div>
                       Position: {craft.latitude.toFixed(4)}°,{" "}
                       {craft.longitude.toFixed(4)}°
                     </div>
-                    {craft.additionalInfo && (
+                    {craft.additionalinfo && (
                       <div className="mt-2 pt-2 border-t border-slate-200 text-xs">
-                        {craft.additionalInfo}
+                        {craft.additionalinfo}
                       </div>
                     )}
                   </div>

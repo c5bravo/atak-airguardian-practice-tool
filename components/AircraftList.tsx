@@ -1,14 +1,14 @@
 "use client";
-import { Aircraft } from "@/app/page";
 import { Button } from "./ui/button";
 import { Trash2, Plane } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
+import { SelectAircraft } from "@/lib/db/schema";
 
 interface AircraftListProps {
-  aircraft: Aircraft[];
-  selectedAircraft: string | null;
-  onSelectAircraft: (id: string) => void;
-  onDeleteAircraft: (id: string) => void;
+  aircraft: SelectAircraft[];
+  selectedAircraft: number | null;
+  onSelectAircraft: (id: number) => void;
+  onDeleteAircraft: (id: number) => void;
 }
 
 export function AircraftList({
@@ -43,18 +43,18 @@ export function AircraftList({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Plane className="h-4 w-4 text-slate-600" />
-                  <span className="text-slate-900">{craft.id}</span>
+                  <span className="text-slate-900">{craft.aircraftId}</span>
                 </div>
                 <div className="text-sm text-slate-600 space-y-0.5">
                   <div>
-                    {craft.speed} km/h • {craft.altitude.toLocaleString()} ft
+                    {craft.speed} km/h • {craft.altitude.toLocaleString()} m
                   </div>
                   <div className="text-xs">
                     {craft.latitude.toFixed(4)}°, {craft.longitude.toFixed(4)}°
                   </div>
-                  {craft.additionalInfo && (
+                  {craft.additionalinfo && (
                     <div className="text-xs text-slate-500 mt-1 line-clamp-1">
-                      {craft.additionalInfo}
+                      {craft.additionalinfo}
                     </div>
                   )}
                 </div>

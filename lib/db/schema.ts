@@ -1,7 +1,6 @@
 import { int, sqliteTable, text, real, blob } from "drizzle-orm/sqlite-core";
 import { Waypoint } from "@/app/page";
 
-
 export const Aircrafttable = sqliteTable("aircrafttable", {
   id: text().primaryKey(),
   speed: int().notNull(),
@@ -16,5 +15,5 @@ export const Aircrafttable = sqliteTable("aircrafttable", {
   sposLng: int().notNull(),
 });
 
-export type SelectAircraft= typeof Aircrafttable.$inferSelect
-export type InsertAircraft= typeof Aircrafttable.$inferInsert
+export type SelectAircraft = typeof Aircrafttable.$inferSelect;
+export type InsertAircraft = typeof Aircrafttable.$inferInsert;

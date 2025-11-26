@@ -16,9 +16,9 @@ export interface Aircraft {
   additionalInfo: string;
   heading: number;
   waypoints: Waypoint[];
-  waypointindex: number
-  sposLat: number
-  sposLng: number
+  waypointindex: number;
+  sposLat: number;
+  sposLng: number;
 }
 
 export interface Waypoint {
@@ -35,56 +35,55 @@ const initialAircraft: Aircraft[] = [
     longitude: 24.9384,
     additionalInfo: "Commercial flight to Stockholm",
     heading: 0,
-    waypoints: [{latitude: 63, longitude: 25}],
+    waypoints: [{ latitude: 63, longitude: 25 }],
     waypointindex: 0,
-    sposLat:60.1699,
-    sposLng:24.9384
-  }
+    sposLat: 60.1699,
+    sposLng: 24.9384,
+  },
 ];
 
+const postdata = async (a: Aircraft) => {
+  const res = await fetch("http://localhost:3000/pages/api", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(a),
+  });
+};
 
-  const postdata = async (a: Aircraft) =>{
-    const res = await fetch('http://localhost:3000/pages/api',{
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(a),
-    })
-  }
+const getdata = async () => {
+  const res = await fetch("http://localhost:3000/pages/api", {
+    method: "GET",
+  });
+  return await res.json();
+};
 
-  const getdata = async () =>{
-    const res = await fetch('http://localhost:3000/pages/api',{
-        method: 'GET'
-    })
-    return await res.json()
-  }
-
-  const deletedata = async (id: string) =>{
-    const res = await fetch('http://localhost:3000/pages/api',{
-        method: 'DELETE',
-        body: JSON.stringify(id),
-    })
-    return await res.json()
-  }
+const deletedata = async (id: string) => {
+  const res = await fetch("http://localhost:3000/pages/api", {
+    method: "DELETE",
+    body: JSON.stringify(id),
+  });
+  return await res.json();
+};
 
 export default function App() {
   const [aircraft, setAircraft] = useState<Aircraft[]>(initialAircraft);
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
-  const [map, Setmap] = useState<Map|null>(null)
+  const [map, Setmap] = useState<Map | null>(null);
 
-  const setMap = (m: Map|null) => {
-    Setmap(m)
-  }
+  const setMap = (m: Map | null) => {
+    Setmap(m);
+  };
 
   const handleAddAircraft = (newAircraft: Aircraft) => {
-    setAircraft([...aircraft, newAircraft])
+    setAircraft([...aircraft, newAircraft]);
     postdata(newAircraft);
   };
-  
+
   const handleDeleteAircraft = (id: string) => {
     setAircraft(aircraft.filter((a) => a.id !== id));
-    deletedata(id)
+    deletedata(id);
     if (selectedAircraft === id) {
       setSelectedAircraft(null);
     }
@@ -106,32 +105,30 @@ export default function App() {
     import("leaflet").then(() => {
       import("leaflet-geometryutil").then(() => {
         setReady(true);
+      });
     });
-    });
-
   }, []);
 
-
-  useEffect(() =>{
+  useEffect(() => {
     //if(!ready) return
-    const i = setInterval(() =>{
+    const i = setInterval(() => {
       async function fetching() {
-        const craft = (await getdata())
-        setAircraft(craft)
+        const craft = await getdata();
+        setAircraft(craft);
       }
-      fetching()
-}, 1000)
-  return () => {clearInterval(i)}
-  }) 
-
-
+      fetching();
+    }, 1000);
+    return () => {
+      clearInterval(i);
+    };
+  });
 
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-slate-600 border-b border-slate-200 shadow-sm">
         <div className="container mx-auto px-4 py-6 flex items-center space-x-4">
           <img src="/ilmavahti.svg" className="h-10 w-auto" />
-          <h1 className="text-slate-900 text-white font-bold">TAK Air Ops Simulator</h1>
+          <h1 className="text-white font-bold">TAK Air Ops Simulator</h1>
         </div>
       </header>
 

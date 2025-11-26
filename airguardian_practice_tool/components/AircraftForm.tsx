@@ -37,7 +37,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
     e.preventDefault();
 
     if (!startPos) {
-      alert("Please click on the map to select the aircraft starting position.");
+      console.warn("Missing start position.");
       return;
     }
     setSettingwp(false);

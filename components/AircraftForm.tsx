@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Aircraft, Waypoint } from "@/app/page";
+import { Waypoint } from "@/lib/db/schema";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -8,6 +8,7 @@ import { Textarea } from "./ui/textarea";
 import { PlaneTakeoff, Pin } from "lucide-react";
 import { atom, useAtom } from "jotai";
 import { MapPin } from "lucide-react";
+import { InsertAircraft } from "@/lib/db/schema";
 
 export const settingwpAtom = atom(false);
 export const waypointAtom = atom<Waypoint[]>([]);
@@ -17,7 +18,7 @@ export const aircraftStartAtom = atom<{ lat: number; lng: number } | null>(
 export const settingStartAtom = atom(false);
 
 interface AircraftFormProps {
-  onSubmit: (aircraft: Aircraft) => void;
+  onSubmit: (aircraft: InsertAircraft) => void;
 }
 
 export function AircraftForm({ onSubmit }: AircraftFormProps) {
@@ -44,14 +45,14 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
     }
     setSettingwp(false);
 
-    const newAircraft: Aircraft = {
-      id: formData.id,
+    const newAircraft: InsertAircraft = {
+      aircraftId: formData.id,
       speed: Number(formData.speed),
       altitude: Number(formData.altitude),
       latitude: startPos.lat,
       longitude: startPos.lng,
       heading: Number(formData.heading),
-      additionalInfo: formData.additionalInfo,
+      additionalinfo: formData.additionalInfo,
       waypoints: waypoints,
       waypointindex: 0,
       sposLat: startPos.lat,
@@ -118,7 +119,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         </div>
 
         <div>
-          <Label htmlFor="altitude">Altitude (ft)</Label>
+          <Label htmlFor="altitude">Altitude (m)</Label>
           <Input
             className="mt-2"
             id="altitude"
@@ -144,6 +145,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           <p className="text-red-600 text-sm mt-1">No position selected</p>
         )}
         <Button
+          type="button"
           onClick={() => setSettingStart((prev) => !prev)}
           className={`mt-2 w-full ${
             settingStart

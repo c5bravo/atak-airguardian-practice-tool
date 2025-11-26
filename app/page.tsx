@@ -5,45 +5,10 @@ import { AircraftList } from "@/components/AircraftList";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { Map } from "leaflet";
-import L from "leaflet";
+import { InsertAircraft, SelectAircraft } from "@/lib/db/schema";
 
-export interface Aircraft {
-  id: string;
-  speed: number;
-  altitude: number;
-  latitude: number;
-  longitude: number;
-  additionalInfo: string;
-  heading: number;
-  waypoints: Waypoint[];
-  waypointindex: number;
-  sposLat: number;
-  sposLng: number;
-}
-
-export interface Waypoint {
-  latitude: number;
-  longitude: number;
-}
-
-const initialAircraft: Aircraft[] = [
-  {
-    id: "FIN001",
-    speed: 450,
-    altitude: 35000,
-    latitude: 60.1699,
-    longitude: 24.9384,
-    additionalInfo: "Commercial flight to Stockholm",
-    heading: 0,
-    waypoints: [{ latitude: 63, longitude: 25 }],
-    waypointindex: 0,
-    sposLat: 60.1699,
-    sposLng: 24.9384,
-  },
-];
-
-const postdata = async (a: Aircraft) => {
-  const res = await fetch("http://localhost:3000/pages/api", {
+const postData = async (a: InsertAircraft) => {
+  await fetch("/api", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -52,15 +17,15 @@ const postdata = async (a: Aircraft) => {
   });
 };
 
-const getdata = async () => {
-  const res = await fetch("http://localhost:3000/pages/api", {
+const getData = async () => {
+  const res = await fetch("/api", {
     method: "GET",
   });
   return await res.json();
 };
 
-const deletedata = async (id: string) => {
-  const res = await fetch("http://localhost:3000/pages/api", {
+const deleteData = async (id: number) => {
+  const res = await fetch("/api", {
     method: "DELETE",
     body: JSON.stringify(id),
   });
@@ -68,22 +33,18 @@ const deletedata = async (id: string) => {
 };
 
 export default function App() {
-  const [aircraft, setAircraft] = useState<Aircraft[]>(initialAircraft);
-  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
-  const [map, Setmap] = useState<Map | null>(null);
+  const [aircraft, setAircraft] = useState<SelectAircraft[]>([]);
+  const [selectedAircraft, setSelectedAircraft] = useState<number | null>(null);
+  const [map, setMap] = useState<Map | null>(null);
 
-  const setMap = (m: Map | null) => {
-    Setmap(m);
+  const handleAddAircraft = (newAircraft: InsertAircraft) => {
+    setAircraft((prev) => [...prev, { ...newAircraft, id: 0 }]);
+    postData(newAircraft);
   };
 
-  const handleAddAircraft = (newAircraft: Aircraft) => {
-    setAircraft([...aircraft, newAircraft]);
-    postdata(newAircraft);
-  };
-
-  const handleDeleteAircraft = (id: string) => {
+  const handleDeleteAircraft = (id: number) => {
     setAircraft(aircraft.filter((a) => a.id !== id));
-    deletedata(id);
+    deleteData(id);
     if (selectedAircraft === id) {
       setSelectedAircraft(null);
     }
@@ -92,7 +53,7 @@ export default function App() {
   const Map = useMemo(
     () =>
       dynamic(() => import("@/components/AircraftMap"), {
-        loading: () => <p>A map is loading</p>,
+        loading: () => <p>The map is loading</p>,
         ssr: false,
       }),
     [],
@@ -113,7 +74,7 @@ export default function App() {
     //if(!ready) return
     const i = setInterval(() => {
       async function fetching() {
-        const craft = await getdata();
+        const craft = await getData();
         setAircraft(craft);
       }
       fetching();
@@ -137,12 +98,7 @@ export default function App() {
           {/* Map Section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <Map
-                aircraft={aircraft}
-                selectedAircraft={selectedAircraft}
-                onSelectAircraft={setSelectedAircraft}
-                setM={setMap}
-              />
+              <Map aircraft={aircraft} setM={setMap} />
             </div>
           </div>
 

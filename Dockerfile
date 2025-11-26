@@ -1,55 +1,29 @@
-# BUILD FOR LOCAL DEVELOPMENT
-FROM node:20-alpine AS development
-
+FROM node:24-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+COPY . /app
 WORKDIR /app
-
-COPY --chown=node:node package*.json ./
-
-RUN npm ci
-
-COPY --chown=node:node . .
-
-USER node
-
-
-# Base image for production
-FROM node:20-alpine AS build
-
-WORKDIR /app
-
-COPY --chown=node:node package*.json ./
-
-COPY --chown=node:node --from=development /app/node_modules ./node_modules
-
-COPY --chown=node:node . .
-
 ENV DB_FILE_NAME=file:local.db
 
+FROM base AS prod-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm run build
 RUN npx drizzle-kit push
 
-RUN npm run build
+FROM base
 
-ENV NODE_ENV=production
-
-RUN npm ci --only=production && npm cache clean --force
-
-USER node
-
-
-# Base image for production
-FROM node:20-alpine AS production
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV DB_FILE_NAME=file:local.db
-
-COPY --chown=node:node --from=build /app/package*.json ./
-COPY --chown=node:node --from=build /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/.next ./.next
 COPY --chown=node:node --from=build /app/public ./public
 COPY --chown=node:node --from=build /app/local.db ./
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+USER node
+
+CMD [ "pnpm", "start" ]

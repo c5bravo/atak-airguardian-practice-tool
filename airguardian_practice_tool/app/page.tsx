@@ -153,13 +153,13 @@ export default function App() {
           <div className="space-y-6">
             {/* Add Aircraft Form */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-slate-900 mb-4">Add Aircraft</h2>
+              <h2 className="text-slate-900 font-bold mb-4">Add Aircraft</h2>
               <AircraftForm onSubmit={handleAddAircraft} />
             </div>
 
             {/* Aircraft List */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-slate-900 mb-4">
+              <h2 className="text-slate-900 font-bold mb-4">
                 Aircraft List ({aircraft.length})
               </h2>
               <AircraftList

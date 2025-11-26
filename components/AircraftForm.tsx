@@ -11,7 +11,9 @@ import { MapPin } from "lucide-react";
 
 export const settingwpAtom = atom(false);
 export const waypointAtom = atom<Waypoint[]>([]);
-export const aircraftStartAtom = atom<{ lat: number; lng: number } | null>(null);
+export const aircraftStartAtom = atom<{ lat: number; lng: number } | null>(
+  null,
+);
 export const settingStartAtom = atom(false);
 
 interface AircraftFormProps {
@@ -25,13 +27,13 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
     altitude: "",
     heading: "",
     additionalInfo: "",
-    waypoints: []
+    waypoints: [],
   });
 
   const [waypoints, setWaypoints] = useAtom(waypointAtom);
   const [settingwp, setSettingwp] = useAtom(settingwpAtom);
   const [startPos] = useAtom(aircraftStartAtom);
-    const [settingStart, setSettingStart] = useAtom(settingStartAtom);
+  const [settingStart, setSettingStart] = useAtom(settingStartAtom);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,11 +55,10 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       waypoints: waypoints,
       waypointindex: 0,
       sposLat: startPos.lat,
-      sposLng: startPos.lng
+      sposLng: startPos.lng,
     };
 
     onSubmit(newAircraft);
-  
 
     // Reset form
     setFormData({
@@ -66,23 +67,23 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       altitude: "",
       heading: "",
       additionalInfo: "",
-      waypoints: []
+      waypoints: [],
     });
     setWaypoints([]);
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const startaddWaypoint = (e: React.FormEvent) => {
     e.preventDefault();
-    setSettingwp(prev => !prev);
+    setSettingwp((prev) => !prev);
   };
 
   return (
@@ -90,7 +91,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       <div>
         <Label htmlFor="id">Aircraft ID</Label>
         <Input
-        className="mt-2"
+          className="mt-2"
           id="id"
           name="id"
           value={formData.id}
@@ -143,13 +144,17 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           <p className="text-red-600 text-sm mt-1">No position selected</p>
         )}
         <Button
-          onClick={() => setSettingStart(prev => !prev)}
+          onClick={() => setSettingStart((prev) => !prev)}
           className={`mt-2 w-full ${
-            settingStart ? "bg-green-600 text-white hover:bg-green-700" : "bg-slate-200 text-slate-900 hover:bg-slate-300"
+            settingStart
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-slate-200 text-slate-900 hover:bg-slate-300"
           }`}
         >
           <MapPin className="mr-2 h-4 w-4" />
-          {settingStart ? "Selecting Start Position..." : "Set New Start Position"}
+          {settingStart
+            ? "Selecting Start Position..."
+            : "Set New Start Position"}
         </Button>
       </div>
 
@@ -169,34 +174,31 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       <div>
         {waypoints.map((point, i) => {
           return (
-
-          
-          <div
-            key={i}
-            className="border rounded-lg p-3 space-y-2 text-slate-700 mb-5"
-          >
-            <div className="flex justify-between">
-              <span className="font-medium">Latitude</span>
-              <span>{point.latitude.toFixed(5)}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="font-medium">Longitude</span>
-              <span>{point.longitude.toFixed(5)}</span>
-            </div>
-
-            <button
-              onClick={() =>
-                setWaypoints((wps) => wps.filter((_, idx) => idx !== i))
-              }
-              className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
+            <div
+              key={i}
+              className="border rounded-lg p-3 space-y-2 text-slate-700 mb-5"
             >
-              Delete
-            </button>
-          </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Latitude</span>
+                <span>{point.latitude.toFixed(5)}</span>
+              </div>
 
-        );
-})}
+              <div className="flex justify-between">
+                <span className="font-medium">Longitude</span>
+                <span>{point.longitude.toFixed(5)}</span>
+              </div>
+
+              <button
+                onClick={() =>
+                  setWaypoints((wps) => wps.filter((_, idx) => idx !== i))
+                }
+                className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
+              >
+                Delete
+              </button>
+            </div>
+          );
+        })}
         {/* waypoints button active/inactive */}
         <Button
           onClick={startaddWaypoint}

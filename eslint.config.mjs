@@ -14,12 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
 
-
-{
-  "extends": [
-    "prettier"
-  ]
-}
+  {
+    extends: ["prettier"],
+  },
 ]);
 
 export default [eslintConfig, eslintConfigPrettier];

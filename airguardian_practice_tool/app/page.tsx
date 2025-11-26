@@ -128,9 +128,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-slate-900">TAK ilmavalvonta harjoitustyökalu</h1>
+      <header className="bg-slate-600 border-b border-slate-200 shadow-sm">
+        <div className="container mx-auto px-4 py-6 flex items-center space-x-4">
+          <img src="/ilmavahti.svg" className="h-10 w-auto" />
+          <h1 className="text-slate-900 text-white font-bold">TAK Air Ops Simulator</h1>
         </div>
       </header>
 

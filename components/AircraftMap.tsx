@@ -9,7 +9,12 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { Icon, LatLng, Map } from "leaflet";
 import { Popup, useMapEvents } from "react-leaflet";
 import { useAtom } from "jotai";
-import { settingwpAtom, waypointAtom, aircraftStartAtom, settingStartAtom } from "./AircraftForm"; 
+import {
+  settingwpAtom,
+  waypointAtom,
+  aircraftStartAtom,
+  settingStartAtom,
+} from "./AircraftForm";
 import { Tooltip } from "react-leaflet";
 
 interface AircraftMapProps {
@@ -22,7 +27,7 @@ interface AircraftMapProps {
 export default function AircraftMap({
   aircraft,
   onSelectAircraft,
-  setM
+  setM,
 }: AircraftMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +59,7 @@ export default function AircraftMap({
   const [settingwp] = useAtom(settingwpAtom);
   const [, setWaypoints] = useAtom<Waypoint[]>(waypointAtom);
   const [startPos, setStartPos] = useAtom(aircraftStartAtom);
-    const [settingStart, setSettingStart] = useAtom(settingStartAtom);
+  const [settingStart, setSettingStart] = useAtom(settingStartAtom);
 
   // handle clicking map
   function ClickHandler() {
@@ -65,16 +70,15 @@ export default function AircraftMap({
 
         if (settingwp) {
           setWaypoints((prev) => [...prev, { latitude: lat, longitude: lng }]);
-        } else if(settingStart) {
+        } else if (settingStart) {
           setStartPos({ lat, lng }); //choose aircraft start
-          setSettingStart(false)
+          setSettingStart(false);
         }
-      }
+      },
     });
 
     return null;
   }
-
 
   function WaypointMarkers() {
     const [settingwp] = useAtom(settingwpAtom);
@@ -84,7 +88,10 @@ export default function AircraftMap({
       return (
         <>
           {waypoints.map((marker, i) => (
-            <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} />
+            <Marker
+              key={i}
+              position={new LatLng(marker.latitude, marker.longitude)}
+            />
           ))}
         </>
       );
@@ -94,7 +101,10 @@ export default function AircraftMap({
       return (
         <>
           {drawnwaypoints?.map((marker, i) => (
-            <Marker key={i} position={new LatLng(marker.latitude, marker.longitude)} />
+            <Marker
+              key={i}
+              position={new LatLng(marker.latitude, marker.longitude)}
+            />
           ))}
         </>
       );
@@ -110,15 +120,10 @@ export default function AircraftMap({
 
     positionsarr.push(new LatLng(craft!.sposLat, craft!.sposLng));
     drawnwaypoints?.forEach((p) =>
-      positionsarr.push(new LatLng(p.latitude, p.longitude))
+      positionsarr.push(new LatLng(p.latitude, p.longitude)),
     );
 
-    return (
-      <Polyline
-        pathOptions={{ color: "red" }}
-        positions={positionsarr}
-      />
-    );
+    return <Polyline pathOptions={{ color: "red" }} positions={positionsarr} />;
   }
 
   function selectAircraft(id: string) {
@@ -150,13 +155,13 @@ export default function AircraftMap({
         ref={setMap}
       >
         <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
+          attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         <ClickHandler />
 
-          {startPos && (
+        {startPos && (
           <Marker position={[startPos.lat, startPos.lng]}>
             <Tooltip permanent direction="top">
               Start Position
@@ -178,7 +183,7 @@ export default function AircraftMap({
             >
               <Popup
                 eventHandlers={{
-                  remove: () => closePopup()
+                  remove: () => closePopup(),
                 }}
               >
                 <div>

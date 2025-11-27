@@ -3,6 +3,7 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 COPY --chown=node:node . /app
+RUN mkdir -p /app/data && chown node:node /app/data
 WORKDIR /app
 ENV DB_FILE_NAME=file:local.db
 

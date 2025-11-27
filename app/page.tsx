@@ -82,9 +82,9 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 bg-[url('/leijona-bg-gray.svg')] bg-cover bg-no-repeat">
       <header className="bg-sky-900 border-b border-zinc-500 shadow-sm">
-        <div className="container mx-auto px-4 py-6 flex items-center space-x-4">
+        <div className="container mx-auto py-4 flex items-center space-x-4">
           <Image src="/ilmavahti.svg" alt="logo" height={30} width={30} />
           <h1 className="text-white font-bold">TAK Air Ops Simulator</h1>
         </div>

@@ -132,20 +132,22 @@ function newpos(pos: latlong, heading: number, distance: number) {
   return { lat: lat2 * radInv, lng: lon2 };
 }
 
-const calculateheading = (curpos: latlong, nextpos: latlong) => {
-  const φ1 = (curpos.lat * Math.PI) / 180;
-  const φ2 = (nextpos.lat * Math.PI) / 180;
-  const Δλ = ((nextpos.lng - curpos.lng) * Math.PI) / 180;
+const calculateheading = (curPos: latlong, nextPos: latlong) => {
+  const lat1 = (curPos.lat * Math.PI) / 180;
+  const lat2 = (nextPos.lat * Math.PI) / 180;
+  const deltaLng = ((nextPos.lng - curPos.lng) * Math.PI) / 180;
 
-  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const y = Math.sin(deltaLng) * Math.cos(lat2);
   const x =
-    Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
 
-  let res = Math.atan2(y, x);
-  res = (res * 180) / Math.PI;
+  let result = Math.atan2(y, x);
+  result = (result * 180) / Math.PI;
 
-  return (res + 360) % 360; // normalize 0-360°
+  return (result + 360) % 360; // normalize 0-360°
 };
+
 
 function dist(pos: latlong, wpos: latlong) {
   const R = 6371; // Radius of the earth in km

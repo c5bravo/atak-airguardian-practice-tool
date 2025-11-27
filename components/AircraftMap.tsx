@@ -33,19 +33,6 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
     popupAnchor: [-3, -20],
   });
 
-  const bounds = {
-    minLat: 59.5,
-    maxLat: 70.5,
-    minLon: 19.5,
-    maxLon: 31.5,
-  };
-
-  const latLonToXY = (lat: number, lon: number) => {
-    const x = ((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon)) * 100;
-    const y = ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * 100;
-    return { x, y };
-  };
-
   const [drawnWaypoints, setDrawnWaypoints] = useState<Waypoint[]>();
   const [selectedAircraft, setSelectedAircraft] = useState<number | null>();
   const [map, setMap] = useState<Map | null>(null);

@@ -16,7 +16,7 @@ export async function GET() {
       aircraftId: craft.aircraftId,
       position: location,
       speed: speed,
-      direction: craft.heading,
+      direction: Math.round(craft.heading),
       altitude: altitude,
       details: craft.additionalinfo,
     };

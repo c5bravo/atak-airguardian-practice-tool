@@ -2,7 +2,7 @@ FROM node:24-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
-COPY . /app
+COPY --chown=node:node . /app
 WORKDIR /app
 ENV DB_FILE_NAME=file:local.db
 
@@ -12,7 +12,6 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-l
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build
-RUN npx drizzle-kit push
 
 FROM base
 
@@ -20,10 +19,10 @@ COPY --chown=node:node --from=build /app/package.json /app/pnpm-lock.yaml /app/p
 COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/.next ./.next
 COPY --chown=node:node --from=build /app/public ./public
-COPY --chown=node:node --from=build /app/local.db ./
 
 EXPOSE 3000
 
 USER node
 
-CMD [ "pnpm", "start" ]
+# CMD [ "pnpm", "start" ]
+ENTRYPOINT [ "/app/entrypoint.sh" ]

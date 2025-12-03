@@ -172,6 +172,9 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           rows={3}
         />
       </div>
+          <p className="mb-2 text-sm text-red-600">
+          Add at least one waypoint
+          </p>
 
       <div>
         {waypoints.map((point, i) => {

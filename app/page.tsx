@@ -22,9 +22,9 @@ const getData = async () => {
   const res = await fetch("/api", {
     method: "GET",
   });
-  if(res.status != 200){
-    alert("Database error")
-    return []
+  if (res.status != 200) {
+    alert("Database error");
+    return [];
   }
   return await res.json();
 };

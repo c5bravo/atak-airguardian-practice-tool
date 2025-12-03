@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format:all": "prettier --write ."
   },
   "dependencies": {
     "@libsql/client": "^0.15.15",
@@ -41,6 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.2",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "leaflet-geometryutil": "^0.10.3",
     "prettier": "3.6.2",
     "tailwindcss": "^4",

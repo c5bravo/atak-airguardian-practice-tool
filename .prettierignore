@@ -2,3 +2,7 @@
 build
 coverage
 pnpm-lock.yaml
+.prettierignore
+public/
+.gitignore
+.husky/

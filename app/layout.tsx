@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TAK Air Ops Simulator",
-  description: "A training platform designed to simulate air operations and provide realistic air-threat practice scenarios.",
+  description:
+    "A training platform designed to simulate air operations and provide realistic air-threat practice scenarios.",
 };
 
 export default function RootLayout({

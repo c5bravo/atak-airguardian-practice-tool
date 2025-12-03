@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/db";
-import { AircraftTable, InsertAircraft } from "@/lib/db/schema";
+import { AircraftTable, InsertAircraft, SelectAircraft } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-export interface latlong {
+export interface LatLon {
   lat: number;
   lng: number;
 }
@@ -30,18 +30,16 @@ export async function POST(request: Request) {
   return NextResponse.json(inserted);
 }
 
-export async function GET() {
-  const oldCraft = await db.select().from(AircraftTable);
-
+export function calculateCurrentPositions(oldCraft: SelectAircraft[]) {
   const newCraft = oldCraft.map((craft) => {
-    const latlong: latlong = { lat: craft.latitude, lng: craft.longitude };
+    const latLng: LatLon = { lat: craft.latitude, lng: craft.longitude };
     let waypointi = craft.waypointindex;
     let waypoints = craft.waypoints;
     let waypoint = waypoints[waypointi];
-    let nexpos: latlong = { lat: waypoint.latitude, lng: waypoint.longitude };
-    const checkwaypoint = checkfornewwaypoint(latlong, nexpos);
+    let nexPos: LatLon = { lat: waypoint.latitude, lng: waypoint.longitude };
+    const checkWaypoint = checkForNewWaypoint(latLng, nexPos);
 
-    if (checkwaypoint) {
+    if (checkWaypoint) {
       if (waypointi == waypoints.length - 1) {
         //TODO: stop positions from resetting
         handleDeleteAircraft(craft.id);
@@ -50,10 +48,10 @@ export async function GET() {
       waypointi += 1;
       waypoints = craft.waypoints;
       waypoint = waypoints[waypointi];
-      nexpos = { lat: waypoint.latitude, lng: waypoint.longitude };
+      nexPos = { lat: waypoint.latitude, lng: waypoint.longitude };
     }
-    const h = (360 + calculateheading(latlong, nexpos)) % 360;
-    const pos = calculateposition(latlong, craft.speed, h);
+    const h = (360 + calculateHeading(latLng, nexPos)) % 360;
+    const pos = calculatePosition(latLng, craft.speed, h);
     craft.latitude = pos.lat;
     craft.longitude = pos.lng;
     craft.heading = h;
@@ -67,6 +65,14 @@ export async function GET() {
       waypoints: craft.waypoints,
     };
   });
+
+  return newCraft;
+}
+
+export async function GET() {
+  const oldCraft = await db.select().from(AircraftTable);
+
+  const newCraft = calculateCurrentPositions(oldCraft);
   newCraft.forEach(async (craft) => {
     await db
       .update(AircraftTable)
@@ -84,29 +90,29 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
-  const reqdata = await request.json();
-  await db.delete(AircraftTable).where(eq(AircraftTable.id, reqdata));
-  return NextResponse.json(reqdata);
+  const reqData = await request.json();
+  await db.delete(AircraftTable).where(eq(AircraftTable.id, reqData));
+  return NextResponse.json(reqData);
 }
 
 async function handleDeleteAircraft(id: number) {
   await db.delete(AircraftTable).where(eq(AircraftTable.id, id));
 }
 
-const checkfornewwaypoint = (pos: latlong, wpos: latlong) => {
+const checkForNewWaypoint = (pos: LatLon, wpos: LatLon) => {
   if (dist(pos, wpos) <= 300) {
     return true;
   }
   return false;
 };
 
-const calculateposition = (pos: latlong, speed: number, heading: number) => {
-  const dstchange = speed * 0.00027777777777777778; //one second interval
-  const result = newpos(pos, heading, dstchange * 1000);
+const calculatePosition = (pos: LatLon, speed: number, heading: number) => {
+  const distChange = speed * 0.00027777777777777778; //one second interval
+  const result = newPos(pos, heading, distChange * 1000);
   return result;
 };
 
-function newpos(pos: latlong, heading: number, distance: number) {
+function newPos(pos: LatLon, heading: number, distance: number) {
   heading = (heading + 360) % 360;
   const rad = Math.PI / 180;
   const radInv = 180 / Math.PI;
@@ -132,7 +138,7 @@ function newpos(pos: latlong, heading: number, distance: number) {
   return { lat: lat2 * radInv, lng: lon2 };
 }
 
-const calculateheading = (curPos: latlong, nextPos: latlong) => {
+const calculateHeading = (curPos: LatLon, nextPos: LatLon) => {
   const lat1 = (curPos.lat * Math.PI) / 180;
   const lat2 = (nextPos.lat * Math.PI) / 180;
   const deltaLng = ((nextPos.lng - curPos.lng) * Math.PI) / 180;
@@ -148,8 +154,7 @@ const calculateheading = (curPos: latlong, nextPos: latlong) => {
   return (result + 360) % 360; // normalize 0-360°
 };
 
-
-function dist(pos: latlong, wpos: latlong) {
+function dist(pos: LatLon, wpos: LatLon) {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(wpos.lat - pos.lat); // deg2rad below
   const dLon = deg2rad(wpos.lng - pos.lng);

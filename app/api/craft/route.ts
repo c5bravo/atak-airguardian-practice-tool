@@ -2,9 +2,25 @@ import { db } from "@/lib/db/db";
 import { AircraftTable } from "@/lib/db/schema";
 import { NextResponse } from "next/server";
 import { forward } from "mgrs";
+import { calculateCurrentPositions } from "../route";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
-  const craft = await db.select().from(AircraftTable);
+  const oldCraft = await db.select().from(AircraftTable);
+  const craft = calculateCurrentPositions(oldCraft);
+  craft.forEach(async (craft) => {
+    await db
+      .update(AircraftTable)
+      .set({
+        latitude: craft.latitude,
+        longitude: craft.longitude,
+        heading: craft.heading,
+        waypointindex: craft.waypointindex,
+        waypoints: craft.waypoints,
+      })
+      .where(eq(AircraftTable.id, craft.id));
+  });
+
   const data = craft.map((craft) => {
     const speed =
       craft.speed < 500 ? "slow" : craft.speed < 1000 ? "fast" : "supersonic";

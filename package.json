@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "format:all": "prettier --write ."
+    "format:all": "prettier --write .",
+    "format:staged": "prettier --write $(git diff --staged --name-only --diff-filter d | xargs)"
   },
   "dependencies": {
     "@libsql/client": "^0.15.15",

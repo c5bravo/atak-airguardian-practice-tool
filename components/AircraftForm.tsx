@@ -207,6 +207,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         })}
         {/* waypoints button active/inactive */}
         <Button
+          data-cy="add-waypoints"
           onClick={startaddWaypoint}
           className={
             `w-50% ` +
@@ -219,7 +220,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           {settingwp ? "Adding Waypoints..." : "Add Waypoints"}
         </Button>
       </div>
-      <Button type="submit" className="w-full" disabled={!(waypoints.length>0)}>
+      <Button data-cy="Add Aircraft" type="submit" className="w-full" disabled={!(waypoints.length>0)}>
         <PlaneTakeoff className="mr-2 h-4 w-4" />
         Add Aircraft
       </Button>

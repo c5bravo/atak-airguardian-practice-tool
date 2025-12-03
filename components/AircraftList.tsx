@@ -60,6 +60,7 @@ export function AircraftList({
                 </div>
               </div>
               <Button
+                data-cy={`delete-aircraft-${craft.id}`}
                 variant="ghost"
                 size="sm"
                 className="ml-2 h-8 w-8 p-0"

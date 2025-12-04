@@ -1,4 +1,4 @@
-name: Cypress tests
+name: Check
 
 on:
   push:
@@ -8,27 +8,30 @@ on:
 
 jobs:
   cypress-run:
-    name: Cypress run
-    runs-on: ubuntu-24.04
+    name: Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install node
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: "22.x"
-      - name: Install pnpm
-        run: npm install -g pnpm
-      - name: Pnpm setup
-        run: |
-          pnpm config set side-effects-cache false --location project
-          pnpm --allow-build=cypress add --save-dev cypress
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
-          build: npm run build
-          start: npm start
+          build: pnpm run build
+          start: pnpm start

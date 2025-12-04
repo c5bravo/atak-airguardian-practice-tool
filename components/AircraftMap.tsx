@@ -45,7 +45,7 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
   // handle clicking map
   function ClickHandler() {
     useMapEvents({
-      click(e: any) {
+      click(e) {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
 
@@ -109,6 +109,7 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
 
   useEffect(() => {
     setM(map);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
   return (

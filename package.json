@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "format:all": "prettier --write .",
-    "format:staged": "prettier --write $(git diff --staged --name-only --diff-filter d | xargs)"
+    "format:staged": "prettier --write $(git diff --staged --name-only --diff-filter d | xargs)",
+    "prepare": "husky"
   },
   "dependencies": {
     "@libsql/client": "^0.15.15",

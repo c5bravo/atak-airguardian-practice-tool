@@ -1,5 +1,4 @@
 "use client";
-import { Plane } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -9,10 +8,9 @@ import { Icon, LatLng, Map } from "leaflet";
 import { Popup, useMapEvents } from "react-leaflet";
 import { useAtom, useAtomValue } from "jotai";
 import {
-  settingwpAtom,
   waypointAtom,
   aircraftStartAtom,
-  settingStartAtom,
+  placingPointsAtom,
 } from "./AircraftForm";
 import { Tooltip } from "react-leaflet";
 import { SelectAircraft, Waypoint } from "@/lib/db/schema";
@@ -36,25 +34,23 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
   const [drawnWaypoints, setDrawnWaypoints] = useState<Waypoint[]>();
   const [selectedAircraft, setSelectedAircraft] = useState<number | null>();
   const [map, setMap] = useState<Map | null>(null);
-
-  const [settingwp] = useAtom(settingwpAtom);
-  const [, setWaypoints] = useAtom<Waypoint[]>(waypointAtom);
+  const [, setWaypoints] = useAtom(waypointAtom);
   const [startPos, setStartPos] = useAtom(aircraftStartAtom);
-  const [settingStart, setSettingStart] = useAtom(settingStartAtom);
+  const [placingPoints] = useAtom(placingPointsAtom);
 
-  // handle clicking map
   function ClickHandler() {
     useMapEvents({
       click(e) {
+        if (!placingPoints) return;
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
 
-        if (settingwp) {
-          setWaypoints((prev) => [...prev, { latitude: lat, longitude: lng }]);
-        } else if (settingStart) {
-          setStartPos({ lat, lng }); //choose aircraft start
-          setSettingStart(false);
+        if (!startPos) {
+          setStartPos({ lat, lng });
+          return;
         }
+
+        setWaypoints((prev) => [...prev, { latitude: lat, longitude: lng }]);
       },
     });
 
@@ -62,10 +58,9 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
   }
 
   function WaypointMarkers() {
-    const settingwp = useAtomValue(settingwpAtom);
     const waypoints = useAtomValue(waypointAtom);
 
-    if (settingwp) {
+    if (placingPoints) {
       return (
         <>
           {waypoints.map((marker, i) => (
@@ -109,8 +104,7 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
 
   useEffect(() => {
     setM(map);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map]);
+  }, [map, setM]);
 
   return (
     <div
@@ -149,7 +143,7 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
               icon={planeIcon}
               eventHandlers={{
                 click: () => {
-                  if (selectedAircraft == craft.id) return;
+                  if (selectedAircraft === craft.id) return;
                   setSelectedAircraft(craft.id);
                   const newCraft = aircraft.find((a) => a.id === craft.id);
                   setDrawnWaypoints(newCraft?.waypoints);
@@ -193,30 +187,6 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
         <WaypointMarkers />
         <WaypointLines />
       </MapContainer>
-
-      {/* Legend */}
-      <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4">
-        <div className="text-sm">
-          <div className="mb-2 text-slate-700">Map Legend</div>
-          <div className="space-y-2 text-xs text-slate-600">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center">
-                <Plane className="h-4 w-4 text-white" />
-              </div>
-              <span>Aircraft</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-slate-700 rounded-full"></div>
-              <span>City</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Coordinates display */}
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs text-slate-600">
-        Finland • {aircraft.length} aircraft tracked
-      </div>
     </div>
   );
 }

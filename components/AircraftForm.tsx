@@ -5,17 +5,16 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { PlaneTakeoff, Pin } from "lucide-react";
+import { PlaneTakeoff, MapPin } from "lucide-react";
 import { atom, useAtom } from "jotai";
-import { MapPin } from "lucide-react";
 import { InsertAircraft } from "@/lib/db/schema";
 
-export const settingwpAtom = atom(false);
+// Merged atoms for one button
+export const placingPointsAtom = atom(false);
 export const waypointAtom = atom<Waypoint[]>([]);
 export const aircraftStartAtom = atom<{ lat: number; lng: number } | null>(
   null,
 );
-export const settingStartAtom = atom(false);
 
 interface AircraftFormProps {
   onSubmit: (aircraft: InsertAircraft) => void;
@@ -32,10 +31,8 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
   });
 
   const [waypoints, setWaypoints] = useAtom(waypointAtom);
-  const [settingwp, setSettingwp] = useAtom(settingwpAtom);
   const [startPos] = useAtom(aircraftStartAtom);
-  const [settingStart, setSettingStart] = useAtom(settingStartAtom);
-
+  const [placingPoints, setPlacingPoints] = useAtom(placingPointsAtom);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -43,7 +40,6 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       console.warn("Missing start position.");
       return;
     }
-    setSettingwp(false);
 
     const newAircraft: InsertAircraft = {
       aircraftId: formData.id,
@@ -58,10 +54,8 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       sposLat: startPos.lat,
       sposLng: startPos.lng,
     };
-
     onSubmit(newAircraft);
-
-    // Reset form
+    // reset form
     setFormData({
       id: "",
       speed: "",
@@ -70,6 +64,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       additionalInfo: "",
       waypoints: [],
     });
+
     setWaypoints([]);
   };
 
@@ -81,13 +76,6 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       [e.target.name]: e.target.value,
     });
   };
-
-  const startaddWaypoint = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSettingwp((prev) => !prev);
-    setSettingStart(false);
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -135,7 +123,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         </div>
       </div>
 
-      {/* showing start positin on the map */}
+      {/* START POSITION */}
       <div className="border p-3 rounded bg-white mt-2">
         <Label>Starting Position (click on map)</Label>
         {startPos ? (
@@ -145,22 +133,18 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
         ) : (
           <p className="text-red-600 text-sm mt-1">No position selected</p>
         )}
+
         <Button
           type="button"
-          onClick={() => {
-            setSettingStart((prev) => !prev);
-            setSettingwp(false);
-          }}
+          onClick={() => setPlacingPoints((prev) => !prev)}
           className={`mt-2 w-full ${
-            settingStart
-              ? "bg-green-600 text-white hover:bg-green-700"
+            placingPoints
+              ? "bg-blue-600 text-white hover:bg-blue-700"
               : "bg-slate-200 text-slate-900 hover:bg-slate-300"
           }`}
         >
           <MapPin className="mr-2 h-4 w-4" />
-          {settingStart
-            ? "Selecting Start Position..."
-            : "Set New Start Position"}
+          {placingPoints ? "Click on Map to Add WayPoints..." : "Add WayPoints"}
         </Button>
       </div>
 
@@ -176,53 +160,37 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           rows={3}
         />
       </div>
-      <p className="mb-2 text-sm text-red-600">Add at least one waypoint</p>
 
       <div>
-        {waypoints.map((point, i) => {
-          return (
-            <div
-              key={i}
-              className="border rounded-lg p-3 space-y-2 text-slate-700 mb-5"
-            >
-              <div className="flex justify-between">
-                <span className="font-medium">Latitude</span>
-                <span>{point.latitude.toFixed(5)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="font-medium">Longitude</span>
-                <span>{point.longitude.toFixed(5)}</span>
-              </div>
-
-              <button
-                onClick={() =>
-                  setWaypoints((wps) => wps.filter((_, idx) => idx !== i))
-                }
-                className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
-              >
-                Delete
-              </button>
+        {waypoints.map((point, i) => (
+          <div
+            key={i}
+            className="border rounded-lg p-3 space-y-2 text-slate-700 mb-5"
+          >
+            <div className="flex justify-between">
+              <span className="font-medium">Latitude</span>
+              <span>{point.latitude.toFixed(5)}</span>
             </div>
-          );
-        })}
-        {/* waypoints button active/inactive */}
-        <Button
-          data-cy="add-waypoints"
-          onClick={startaddWaypoint}
-          className={
-            `w-50% ` +
-            (settingwp
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-slate-200 text-slate-900 hover:bg-slate-300")
-          }
-        >
-          <Pin className="mr-2 h-4 w-4" />
-          {settingwp ? "Adding Waypoints..." : "Add Waypoints"}
-        </Button>
+
+            <div className="flex justify-between">
+              <span className="font-medium">Longitude</span>
+              <span>{point.longitude.toFixed(5)}</span>
+            </div>
+
+            <button
+              onClick={() =>
+                setWaypoints((wps) => wps.filter((_, idx) => idx !== i))
+              }
+              className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
+            >
+              Delete
+            </button>
+          </div>
+        ))}
       </div>
+
       <Button
-        data-cy="Add Aircraft"
+        data-cy = "Add Aircraft"
         type="submit"
         className="w-full"
         disabled={!(waypoints.length > 0)}

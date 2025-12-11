@@ -8,15 +8,16 @@
 ![pnpm Badge](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=fff&style=for-the-badge)
 ![Tailwind CSS Badge](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=fff&style=for-the-badge)
 
-
-
 # TAK Air Ops Simulator
+
 A training platform designed to simulate air operations and provide realistic air-threat practice scenarios for [ATAK plugin.](https://github.com/c5bravo/atak-airguardian-plugin)
 
 ## Running
-  1. Clone this repository
-  2. Create `.env` file
-  3. In the `.env` file set the variable `DB_FILE_NAME=file:local.db`
+
+1. Clone this repository
+2. Create `.env` file
+3. In the `.env` file set the variable `DB_FILE_NAME=file:local.db`
+
 ### Without docker
 
 ```bash
@@ -25,12 +26,13 @@ A training platform designed to simulate air operations and provide realistic ai
   pnpm dev
 
 ```
+
 ### With docker
+
 ```bash
 docker build . -t "practice-tool"
 docker run practice-tool
 ```
-
 
 ## Notes
 

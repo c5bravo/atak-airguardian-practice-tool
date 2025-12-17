@@ -31,7 +31,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
   });
 
   const [waypoints, setWaypoints] = useAtom(waypointAtom);
-  const [startPos] = useAtom(aircraftStartAtom);
+  const [startPos, setStartPos] = useAtom(aircraftStartAtom);
   const [placingPoints, setPlacingPoints] = useAtom(placingPointsAtom);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +66,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
     });
 
     setWaypoints([]);
+    setStartPos(null);
   };
 
   const handleChange = (
@@ -103,7 +104,8 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
             onChange={handleChange}
             placeholder="1500"
             required
-            min="0"
+            min="50"
+            max="2900"
           />
         </div>
 
@@ -119,6 +121,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
             placeholder="35000"
             required
             min="0"
+            max="50000"
           />
         </div>
       </div>
@@ -144,24 +147,35 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           }`}
         >
           <MapPin className="mr-2 h-4 w-4" />
-          {placingPoints ? "Click on Map to Add WayPoints..." : "Add WayPoints"}
+          {placingPoints ? "Click on Map to add WayPoints" : "Add WayPoints"}
         </Button>
       </div>
 
       <div>
-        <Label htmlFor="additionalInfo">Additional Information</Label>
-        <Textarea
-          className="mt-2"
-          id="additionalInfo"
-          name="additionalInfo"
-          value={formData.additionalInfo}
-          onChange={handleChange}
-          placeholder="Flight details, destination, etc."
-          rows={3}
-        />
-      </div>
+        {/* START POSITION AS LIST ITEM */}
+        {startPos && (
+          <div className="border rounded-lg p-3 space-y-2 text-slate-700 mb-5">
+            <div className="flex justify-between">
+              <span className="font-medium">Starting latitude</span>
+              <span>{startPos.lat.toFixed(5)}</span>
+            </div>
 
-      <div>
+            <div className="flex justify-between">
+              <span className="font-medium">Starting longitude</span>
+              <span>{startPos.lng.toFixed(5)}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setStartPos(null)}
+              className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+
+        {/* WAYPOINTS LIST */}
         {waypoints.map((point, i) => (
           <div
             key={i}
@@ -178,6 +192,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
             </div>
 
             <button
+              type="button"
               onClick={() =>
                 setWaypoints((wps) => wps.filter((_, idx) => idx !== i))
               }
@@ -188,12 +203,23 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           </div>
         ))}
       </div>
-
+      <div>
+        <Label htmlFor="additionalInfo">Additional Information</Label>
+        <Textarea
+          className="mt-2"
+          id="additionalInfo"
+          name="additionalInfo"
+          value={formData.additionalInfo}
+          onChange={handleChange}
+          placeholder="Flight details, destination, etc."
+          rows={3}
+        />
+      </div>
       <Button
         data-cy="Add Aircraft"
         type="submit"
         className="w-full"
-        disabled={!(waypoints.length > 0)}
+        disabled={!startPos || waypoints.length === 0}
       >
         <PlaneTakeoff className="mr-2 h-4 w-4" />
         Add Aircraft

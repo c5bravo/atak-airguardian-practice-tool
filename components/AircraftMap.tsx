@@ -115,6 +115,9 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
         center={new LatLng(62, 24)}
         zoom={6}
         scrollWheelZoom={true}
+        dragging={true}
+        touchZoom={true}
+        doubleClickZoom={true}
         style={{ height: "700px", width: "full", zIndex: 5 }}
         ref={setMap}
       >
@@ -164,7 +167,7 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
                       {craft.aircraftId}
                     </strong>
                   </div>
-                  <div className="text-sm space-y-1 text-slate-600">
+                  <div className="text-sm space-y-1 flex-container text-slate-600">
                     <div>Speed: {craft.speed} km/h</div>
                     <div>Altitude: {craft.altitude.toLocaleString()} m</div>
                     <div>Heading: {craft.heading.toFixed(3)}°</div>

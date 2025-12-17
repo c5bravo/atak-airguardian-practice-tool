@@ -21,7 +21,7 @@ A training platform designed to simulate air operations and provide realistic ai
 ### Without docker
 
 ```bash
-  pnmp i
+  pnpm i
   pnpm drizzle-kit push
   pnpm dev
 

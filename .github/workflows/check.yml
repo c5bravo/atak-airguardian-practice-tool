@@ -7,18 +7,51 @@ on:
     branches: ["main"]
 
 jobs:
-  cypress-run:
-    name: Check
+  test:
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [24]
+        pnpm-version: [10]
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: ${{ matrix.pnpm-version }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: Create .env
+        run: cp .env.example .env
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Create db
+        run: pnpm drizzle-kit push
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          build: pnpm run build
+          start: pnpm start
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24]
+        pnpm-version: [10]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ matrix.pnpm-version }}
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -31,13 +64,51 @@ jobs:
 
       - name: Lint
         run: pnpm run lint
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24]
+        pnpm-version: [10]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ matrix.pnpm-version }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Check format
+        run: pnpm format:check
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24]
+        pnpm-version: [10]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ matrix.pnpm-version }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Typecheck
         run: pnpm tsc --noEmit
-      - name: Create db
-        run: pnpm drizzle-kit push
-
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
-        with:
-          build: pnpm run build
-          start: pnpm start

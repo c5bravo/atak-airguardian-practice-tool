@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format:check": "prettier -c .",
     "format:all": "prettier --write .",
     "format:staged": "prettier --ignore-unknown --write $(git diff --staged --name-only --diff-filter d | xargs)",
     "prepare": "husky"

@@ -19,11 +19,6 @@ describe("AircraftForm", () => {
     cy.get(".leaflet-container").click(300, 250, { force: true });
     cy.get(".leaflet-container").click(200, 250, { force: true });
 
-    // Activate "Adding Waypoints" mode
-    // cy.get("[data-cy=add-waypoints]")
-    //   .click()
-    //   .should("have.class", "bg-blue-600");
-
     // Add the aircraft
     cy.get('[data-cy="Add Aircraft"]')
       .click()

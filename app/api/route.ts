@@ -39,7 +39,6 @@ async function markExited(id: number) {
 
 export function calculateCurrentPositions(oldCraft: SelectAircraft[]) {
   const newCraft = oldCraft.map((craft) => {
-
     if (craft.isExited) {
       return craft;
     }
@@ -174,9 +173,9 @@ function dist(pos: LatLon, wpos: LatLon) {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(pos.lat)) *
-    Math.cos(deg2rad(wpos.lat)) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
+      Math.cos(deg2rad(wpos.lat)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km    return d
   return d * 1000;

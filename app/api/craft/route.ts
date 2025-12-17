@@ -17,6 +17,7 @@ export async function GET() {
         heading: craft.heading,
         waypointindex: craft.waypointindex,
         waypoints: craft.waypoints,
+        isExited: craft.isExited,
       })
       .where(eq(AircraftTable.id, craft.id));
   });
@@ -35,6 +36,7 @@ export async function GET() {
       direction: Math.round(craft.heading),
       altitude: altitude,
       details: craft.additionalinfo,
+      isExited: craft.isExited,
     };
   });
   return NextResponse.json(data);

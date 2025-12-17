@@ -18,6 +18,10 @@ export const AircraftTable = sqliteTable("aircrafttable", {
   waypointindex: int().notNull(),
   sposLat: int().notNull(),
   sposLng: int().notNull(),
+
+  isExited: int("isExited", { mode: "boolean" })
+    .notNull()
+    .default(false),
 });
 
 export type SelectAircraft = typeof AircraftTable.$inferSelect;

@@ -43,7 +43,7 @@ export default function App() {
   const [, setMap] = useState<Map | null>(null);
 
   const handleAddAircraft = (newAircraft: InsertAircraft) => {
-    setAircraft((prev) => [...prev, { ...newAircraft, id: 0 }]);
+    setAircraft((prev) => [...prev, { ...newAircraft, id: 0, isExited: false, }]);
     postData(newAircraft);
   };
 

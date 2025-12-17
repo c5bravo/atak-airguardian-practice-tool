@@ -30,8 +30,20 @@ export async function POST(request: Request) {
   return NextResponse.json(inserted);
 }
 
+async function markExited(id: number) {
+  await db
+    .update(AircraftTable)
+    .set({ isExited: true })
+    .where(eq(AircraftTable.id, id));
+}
+
 export function calculateCurrentPositions(oldCraft: SelectAircraft[]) {
   const newCraft = oldCraft.map((craft) => {
+
+    if (craft.isExited) {
+      return craft;
+    }
+
     const latLng: LatLon = { lat: craft.latitude, lng: craft.longitude };
     let waypointi = craft.waypointindex;
     let waypoints = craft.waypoints;
@@ -42,6 +54,7 @@ export function calculateCurrentPositions(oldCraft: SelectAircraft[]) {
     if (checkWaypoint) {
       if (waypointi == waypoints.length - 1) {
         //TODO: stop positions from resetting
+        markExited(craft.id);
         handleDeleteAircraft(craft.id);
         return { ...craft };
       }
@@ -96,6 +109,7 @@ export async function DELETE(request: Request) {
 }
 
 async function handleDeleteAircraft(id: number) {
+  await new Promise((r) => setTimeout(r, 180000)); // 3 min
   await db.delete(AircraftTable).where(eq(AircraftTable.id, id));
 }
 
@@ -160,9 +174,9 @@ function dist(pos: LatLon, wpos: LatLon) {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(pos.lat)) *
-      Math.cos(deg2rad(wpos.lat)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(deg2rad(wpos.lat)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km    return d
   return d * 1000;

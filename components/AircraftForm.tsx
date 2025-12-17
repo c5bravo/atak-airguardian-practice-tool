@@ -190,7 +190,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       </div>
 
       <Button
-        data-cy = "Add Aircraft"
+        data-cy="Add Aircraft"
         type="submit"
         className="w-full"
         disabled={!(waypoints.length > 0)}

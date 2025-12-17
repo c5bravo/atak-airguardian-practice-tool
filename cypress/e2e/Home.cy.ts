@@ -11,7 +11,9 @@ describe("AircraftForm", () => {
     cy.get("input[id=speed]").type("1500");
 
     // Set new start position (clicking the button)
-    cy.get(".leaflet-container").should("be.visible").click(400, 250, { force: true });
+    cy.get(".leaflet-container")
+      .should("be.visible")
+      .click(400, 250, { force: true });
     cy.contains("button", "Add WayPoints").click();
 
     cy.get(".leaflet-container").click(300, 250, { force: true });

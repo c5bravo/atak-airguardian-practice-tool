@@ -156,7 +156,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
             <button
               type="button"
               onClick={() => setStartPos(null)}
-              className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
+              className="px-3 py-1 text-sm bg-red-700 hover:bg-red-700 text-white rounded"
             >
               Delete
             </button>
@@ -184,7 +184,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
               onClick={() =>
                 setWaypoints((wps) => wps.filter((_, idx) => idx !== i))
               }
-              className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded"
+              className="px-3 py-1 text-sm bg-red-700 hover:bg-red-700 text-white rounded"
             >
               Delete
             </button>

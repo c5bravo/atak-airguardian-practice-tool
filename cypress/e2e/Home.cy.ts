@@ -14,7 +14,7 @@ describe("AircraftForm", () => {
     cy.get(".leaflet-container")
       .should("be.visible")
       .click(400, 250, { force: true });
-    cy.contains("button", "Add WayPoints").click();
+    cy.contains("button", "Add Route").click();
 
     cy.get(".leaflet-container").click(300, 250, { force: true });
     cy.get(".leaflet-container").click(200, 250, { force: true });

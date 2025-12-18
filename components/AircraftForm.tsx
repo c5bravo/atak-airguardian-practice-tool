@@ -56,7 +56,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       sposLng: startPos.lng,
     };
     onSubmit(newAircraft);
-   // Reset form and state after submit
+    // Reset form and state after submit
     setFormData({
       id: "",
       speed: "",

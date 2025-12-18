@@ -33,6 +33,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
   const [waypoints, setWaypoints] = useAtom(waypointAtom);
   const [startPos, setStartPos] = useAtom(aircraftStartAtom);
   const [placingPoints, setPlacingPoints] = useAtom(placingPointsAtom);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,7 +56,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       sposLng: startPos.lng,
     };
     onSubmit(newAircraft);
-    // reset form
+   // Reset form and state after submit
     setFormData({
       id: "",
       speed: "",
@@ -67,6 +68,7 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
 
     setWaypoints([]);
     setStartPos(null);
+    setPlacingPoints(false); // Reset both "add route and add aircraft" buttons to default
   };
 
   const handleChange = (
@@ -125,32 +127,18 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           />
         </div>
       </div>
-
-      {/* START POSITION */}
-      <div className="border p-3 rounded bg-white mt-2">
-        <Label>Starting Position (click on map)</Label>
-        {startPos ? (
-          <p className="text-green-700 font-semibold">
-            {startPos.lat.toFixed(5)}, {startPos.lng.toFixed(5)}
-          </p>
-        ) : (
-          <p className="text-red-600 text-sm mt-1">No position selected</p>
-        )}
-
-        <Button
-          type="button"
-          onClick={() => setPlacingPoints((prev) => !prev)}
-          className={`mt-2 w-full ${
-            placingPoints
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-slate-200 text-slate-900 hover:bg-slate-300"
-          }`}
-        >
-          <MapPin className="mr-2 h-4 w-4" />
-          {placingPoints ? "Click on Map to add WayPoints" : "Add WayPoints"}
-        </Button>
-      </div>
-
+      <Button
+        type="button"
+        onClick={() => setPlacingPoints((prev) => !prev)}
+        className={`mt-2 w-full ${
+          placingPoints
+            ? "bg-sky-900 text-white hover:bg-sky-700"
+            : "bg-slate-200 text-slate-900 hover:bg-slate-300"
+        }`}
+      >
+        <MapPin className="mr-2 h-4 w-4" />
+        {placingPoints ? "Click on Map to add Route" : "Add Route"}
+      </Button>
       <div>
         {/* START POSITION AS LIST ITEM */}
         {startPos && (
@@ -218,7 +206,11 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       <Button
         data-cy="Add Aircraft"
         type="submit"
-        className="w-full"
+        className={`mt-2 w-full ${
+          placingPoints
+            ? "bg-sky-900 text-white hover:bg-sky-700"
+            : "bg-slate-300 text-slate-900 hover:bg-slate-300"
+        }`}
         disabled={!startPos || waypoints.length === 0}
       >
         <PlaneTakeoff className="mr-2 h-4 w-4" />

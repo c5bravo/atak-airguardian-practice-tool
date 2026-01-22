@@ -2,8 +2,8 @@ FROM node:24-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
-COPY --chown=node:node . /app
-RUN mkdir -p /app/data && chown node:node /app/data
+COPY . /app
+RUN mkdir -p /data/persistent && chown node:node /data/persistent
 WORKDIR /app
 ENV DB_FILE_NAME=file:local.db
 
@@ -16,14 +16,13 @@ RUN pnpm run build
 
 FROM base
 
-COPY --chown=node:node --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
-COPY --chown=node:node --from=build /app/.next ./.next
-COPY --chown=node:node --from=build /app/public ./public
+COPY --from=pvarki/kw_product_init:latest /kw_product_init /kw_product_init
+COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
 
 EXPOSE 3000
-
-USER node
 
 # CMD [ "pnpm", "start" ]
 ENTRYPOINT [ "/app/entrypoint.sh" ]

@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { storage } from "./lib/storage";
-import { PeopleListSchema } from "./lib/types";
+import { ManifestSchema, PeopleListSchema } from "./lib/types";
 import * as fs from "node:fs";
 import * as https from "node:https";
 
 async function fetchAdmins() {
+  const manifest = ManifestSchema.parse(
+    JSON.parse(
+      fs.readFileSync("/pvarki/kraftwerk-init.json", { encoding: "utf-8" }),
+    ),
+  );
   return new Promise((resolve, reject) => {
     const req = https.request(
-      "https://mtls.localmaeher.dev.pvarki.fi:4439/api/v1/people/list/admin",
+      `${manifest.rasenmaeher.mtls.base_uri}api/v1/people/list/admin`,
       {
         key: fs.readFileSync("/data/persistent/private/mtlsclient.key"),
         cert: fs.readFileSync("/data/persistent/public/mtlsclient.pem"),

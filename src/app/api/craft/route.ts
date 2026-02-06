@@ -18,6 +18,7 @@ export async function GET() {
         waypointindex: craft.waypointindex,
         waypoints: craft.waypoints,
         isExited: craft.isExited,
+        time: new Date(),
       })
       .where(eq(AircraftTable.id, craft.id));
   });

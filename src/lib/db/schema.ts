@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { int, sqliteTable, text, real } from "drizzle-orm/sqlite-core";
 
 export interface Waypoint {
@@ -18,6 +19,9 @@ export const AircraftTable = sqliteTable("aircrafttable", {
   waypointindex: int().notNull(),
   sposLat: int().notNull(),
   sposLng: int().notNull(),
+  time: int({ mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
 
   isExited: int("isExited", { mode: "boolean" }).notNull().default(false),
 });

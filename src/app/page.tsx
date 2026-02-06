@@ -45,7 +45,12 @@ export default function App() {
   const handleAddAircraft = (newAircraft: InsertAircraft) => {
     setAircraft((prev) => [
       ...prev,
-      { ...newAircraft, id: 0, isExited: false },
+      {
+        ...newAircraft,
+        id: 0,
+        isExited: false,
+        time: newAircraft.time ?? new Date(),
+      },
     ]);
     postData(newAircraft);
   };

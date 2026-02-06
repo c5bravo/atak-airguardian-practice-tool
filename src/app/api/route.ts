@@ -55,7 +55,7 @@ export function calculateCurrentPositions(oldCraft: SelectAircraft[]) {
     let waypointi = craft.waypointindex;
     let waypoints = craft.waypoints;
     let waypoint = waypoints[waypointi];
-    let nexPos: LatLon = {
+    const nexPos: LatLon = {
       latitude: waypoint.latitude,
       longitude: waypoint.longitude,
     };
@@ -71,7 +71,6 @@ export function calculateCurrentPositions(oldCraft: SelectAircraft[]) {
       waypointi += 1;
       waypoints = craft.waypoints;
       waypoint = waypoints[waypointi];
-      nexPos = { latitude: waypoint.latitude, longitude: waypoint.longitude };
     }
     const h = (360 + calculateHeading(latLng, waypoint)) % 360;
     const pos = calculatePosition(latLng, craft.speed, h, craft.time, waypoint);

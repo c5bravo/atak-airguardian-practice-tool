@@ -7,6 +7,7 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
+  ajv@<6.14.0: ">=6.14.0"
   esbuild@<=0.24.2: ">=0.27.1"
-  qs@<6.14.1: ">=6.14.1"
-  systeminformation@<5.27.14: ">=5.27.14"
+  minimatch@<3.1.4: ">=3.1.4"
+  qs@>=6.7.0 <=6.14.1: ">=6.14.2"

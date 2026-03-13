@@ -12,23 +12,22 @@ import { InsertAircraft } from "@/lib/db/schema";
 // Merged atoms for one button
 export const placingPointsAtom = atom(false);
 export const waypointAtom = atom<Waypoint[]>([]);
-export const aircraftStartAtom = atom<{ lat: number; lng: number } | null>(
-  null,
-);
+export const aircraftStartAtom = atom<Waypoint | null>(null);
+export const aircraftFormAtom = atom({
+  id: "",
+  speed: "",
+  altitude: "",
+  heading: "",
+  additionalInfo: "",
+  waypoints: [],
+});
 
-interface AircraftFormProps {
+export function AircraftForm({
+  onSubmit,
+}: {
   onSubmit: (aircraft: InsertAircraft) => void;
-}
-
-export function AircraftForm({ onSubmit }: AircraftFormProps) {
-  const [formData, setFormData] = useState({
-    id: "",
-    speed: "",
-    altitude: "",
-    heading: "",
-    additionalInfo: "",
-    waypoints: [],
-  });
+}) {
+  const [formData, setFormData] = useAtom(aircraftFormAtom);
 
   const [waypoints, setWaypoints] = useAtom(waypointAtom);
   const [startPos, setStartPos] = useAtom(aircraftStartAtom);
@@ -46,14 +45,14 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
       aircraftId: formData.id,
       speed: Number(formData.speed),
       altitude: Number(formData.altitude),
-      latitude: startPos.lat,
-      longitude: startPos.lng,
+      latitude: startPos.latitude,
+      longitude: startPos.longitude,
       heading: Number(formData.heading),
       additionalinfo: formData.additionalInfo,
       waypoints: waypoints,
       waypointindex: 0,
-      sposLat: startPos.lat,
-      sposLng: startPos.lng,
+      sposLat: startPos.latitude,
+      sposLng: startPos.longitude,
     };
     onSubmit(newAircraft);
     // Reset form and state after submit
@@ -145,12 +144,12 @@ export function AircraftForm({ onSubmit }: AircraftFormProps) {
           <div className="border rounded-lg p-3 space-y-2 text-slate-700 mb-5">
             <div className="flex justify-between">
               <span className="font-medium">Starting latitude</span>
-              <span>{startPos.lat.toFixed(5)}</span>
+              <span>{startPos.latitude.toFixed(5)}</span>
             </div>
 
             <div className="flex justify-between">
               <span className="font-medium">Starting longitude</span>
-              <span>{startPos.lng.toFixed(5)}</span>
+              <span>{startPos.longitude.toFixed(5)}</span>
             </div>
 
             <button

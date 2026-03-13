@@ -11,16 +11,100 @@ import {
   waypointAtom,
   aircraftStartAtom,
   placingPointsAtom,
+  aircraftFormAtom,
 } from "./AircraftForm";
 import { Tooltip } from "react-leaflet";
 import { SelectAircraft, Waypoint } from "@/lib/db/schema";
+import { dist } from "@/app/api/route";
 
-interface AircraftMapProps {
-  aircraft: SelectAircraft[];
-  setM: (m: Map | null) => void;
+function WaypointMarkers({
+  placingPoints,
+  selectedAircraft,
+  drawnWaypoints,
+  startPos,
+}: {
+  placingPoints: boolean;
+  selectedAircraft?: number | null;
+  drawnWaypoints?: Waypoint[];
+  startPos: Waypoint | null;
+}) {
+  const waypoints = [
+    ...(startPos ? [startPos] : []),
+    ...useAtomValue(waypointAtom),
+  ];
+  const aircraftForm = useAtomValue(aircraftFormAtom);
+
+  const speed = parseInt(aircraftForm.speed);
+
+  if (placingPoints) {
+    return (
+      <>
+        {waypoints.map((marker, i) => (
+          <Marker
+            key={i}
+            position={new LatLng(marker.latitude, marker.longitude)}
+          >
+            {i === 0 && (
+              <Tooltip permanent direction="top">
+                Start Position
+              </Tooltip>
+            )}
+            {i !== 0 && aircraftForm.speed !== "" && (
+              <Tooltip permanent direction="top">
+                {Math.round(
+                  (dist(waypoints[i - 1], marker) / 1000 / speed) * 60,
+                )}
+              </Tooltip>
+            )}
+          </Marker>
+        ))}
+      </>
+    );
+  }
+
+  if (selectedAircraft) {
+    return (
+      <>
+        {drawnWaypoints?.map((marker, i) => (
+          <Marker
+            key={i}
+            position={new LatLng(marker.latitude, marker.longitude)}
+          />
+        ))}
+      </>
+    );
+  }
+
+  return null;
 }
 
-export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
+function WaypointLines({
+  selectedAircraft,
+  drawnWaypoints,
+  aircraft,
+}: {
+  selectedAircraft?: number | null;
+  drawnWaypoints?: Waypoint[];
+  aircraft: SelectAircraft[];
+}) {
+  const craft = aircraft.find((a) => a.id === selectedAircraft);
+  if (!craft) return null;
+  const positionsarr: LatLng[] = [new LatLng(craft!.sposLat, craft!.sposLng)];
+
+  drawnWaypoints?.forEach((p) =>
+    positionsarr.push(new LatLng(p.latitude, p.longitude)),
+  );
+
+  return <Polyline pathOptions={{ color: "red" }} positions={positionsarr} />;
+}
+
+export default function AircraftMap({
+  aircraft,
+  setM,
+}: {
+  aircraft: SelectAircraft[];
+  setM: (m: Map | null) => void;
+}) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   const planeIcon = new Icon({
@@ -46,7 +130,7 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
         const lng = e.latlng.lng;
 
         if (!startPos) {
-          setStartPos({ lat, lng });
+          setStartPos({ latitude: lat, longitude: lng });
           return;
         }
 
@@ -55,51 +139,6 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
     });
 
     return null;
-  }
-
-  function WaypointMarkers() {
-    const waypoints = useAtomValue(waypointAtom);
-
-    if (placingPoints) {
-      return (
-        <>
-          {waypoints.map((marker, i) => (
-            <Marker
-              key={i}
-              position={new LatLng(marker.latitude, marker.longitude)}
-            />
-          ))}
-        </>
-      );
-    }
-
-    if (selectedAircraft) {
-      return (
-        <>
-          {drawnWaypoints?.map((marker, i) => (
-            <Marker
-              key={i}
-              position={new LatLng(marker.latitude, marker.longitude)}
-            />
-          ))}
-        </>
-      );
-    }
-
-    return null;
-  }
-
-  function WaypointLines() {
-    const positionsarr: LatLng[] = [];
-    const craft = aircraft.find((a) => a.id === selectedAircraft);
-    if (!craft) return null;
-
-    positionsarr.push(new LatLng(craft!.sposLat, craft!.sposLng));
-    drawnWaypoints?.forEach((p) =>
-      positionsarr.push(new LatLng(p.latitude, p.longitude)),
-    );
-
-    return <Polyline pathOptions={{ color: "red" }} positions={positionsarr} />;
   }
 
   useEffect(() => {
@@ -129,7 +168,7 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
         <ClickHandler />
 
         {startPos && (
-          <Marker position={[startPos.lat, startPos.lng]}>
+          <Marker position={[startPos.latitude, startPos.longitude]}>
             <Tooltip permanent direction="top">
               Start Position
             </Tooltip>
@@ -187,8 +226,17 @@ export default function AircraftMap({ aircraft, setM }: AircraftMapProps) {
           );
         })}
 
-        <WaypointMarkers />
-        <WaypointLines />
+        <WaypointMarkers
+          drawnWaypoints={drawnWaypoints}
+          placingPoints={placingPoints}
+          selectedAircraft={selectedAircraft}
+          startPos={startPos}
+        />
+        <WaypointLines
+          aircraft={aircraft}
+          drawnWaypoints={drawnWaypoints}
+          selectedAircraft={selectedAircraft}
+        />
       </MapContainer>
     </div>
   );

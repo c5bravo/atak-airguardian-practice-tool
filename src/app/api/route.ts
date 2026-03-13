@@ -189,7 +189,8 @@ const calculateHeading = (curPos: LatLon, nextPos: LatLon) => {
 
   return (result + 360) % 360; // normalize 0-360°
 };
-function dist(pos: LatLon, wpos: LatLon) {
+
+export function dist(pos: LatLon, wpos: LatLon) {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(wpos.latitude - pos.latitude); // deg2rad below
   const dLon = deg2rad(wpos.longitude - pos.longitude);
